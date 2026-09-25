@@ -1,57 +1,64 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../db");
+const supabase = require("../supabase");
 
-// GET semua tipe surat untuk satu buku
+// GET tipe surat berdasarkan buku_kode
 router.get("/:buku_kode", async (req, res) => {
   const { buku_kode } = req.params;
   try {
-    const [rows] = await db.execute(
-      "SELECT * FROM tipe_surat WHERE buku_kode = ?",
-      [buku_kode],
-    );
-    res.json(rows);
+    const { data, error } = await supabase
+      .from("tipe_surat")
+      .select("*")
+      .eq("buku_kode", buku_kode)
+      .order("kode", { ascending: true });
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// POST tambah tipe surat baru ke buku
+// POST tambah tipe surat baru
 router.post("/", async (req, res) => {
   const { buku_kode, kode, nama } = req.body;
-  if (!buku_kode || !kode || !nama)
-    return res.status(400).json({ error: "Semua field wajib diisi" });
+  if (!buku_kode || !kode || !nama) {
+    return res.status(400).json({ error: "Buku kode, kode, dan nama wajib diisi" });
+  }
+
   try {
-    await db.execute(
-      "INSERT INTO tipe_surat (buku_kode, kode, nama) VALUES (?, ?, ?)",
-      [buku_kode, kode, nama],
-    );
-    res.json({ message: "Tipe surat berhasil ditambahkan" });
+    const { data, error } = await supabase.from("tipe_surat").insert([
+      {
+        buku_kode: buku_kode.trim(),
+        kode: kode.trim(),
+        nama: nama.trim(),
+      },
+    ]);
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: "Tipe surat berhasil ditambahkan", data });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// DELETE tipe surat berdasarkan kode & buku_kode
+// DELETE tipe surat
 router.delete("/:kode", async (req, res) => {
-  const tipeKode = req.params.kode;
-  const bukuKode = req.query.buku_kode; // frontend mengirim via query
+  const { kode } = req.params;
+  const { buku_kode } = req.query;
 
-  if (!bukuKode) {
-    return res.status(400).json({ error: "buku_kode wajib disertakan" });
+  if (!buku_kode) {
+    return res.status(400).json({ error: "Query buku_kode wajib diisi" });
   }
 
   try {
-    const [result] = await db.execute(
-      "DELETE FROM tipe_surat WHERE kode = ? AND buku_kode = ?",
-      [tipeKode, bukuKode],
-    );
+    const { error } = await supabase
+      .from("tipe_surat")
+      .delete()
+      .eq("buku_kode", buku_kode)
+      .eq("kode", kode);
 
-    // Periksa apakah ada baris yang dihapus
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Tipe surat tidak ditemukan" });
-    }
-
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ message: "Tipe surat berhasil dihapus" });
   } catch (err) {
     res.status(500).json({ error: err.message });

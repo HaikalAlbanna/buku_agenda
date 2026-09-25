@@ -1,14 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../db");
+const supabase = require("../supabase");
 
 // GET semua buku
 router.get("/", async (req, res) => {
   try {
-    const result = await db.execute("SELECT * FROM buku");
-    // result biasanya [rows, fields]
-    const rows = Array.isArray(result[0]) ? result[0] : result;
-    res.json(rows);
+    const { data, error } = await supabase.from("buku").select("*").order("kode", { ascending: true });
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -17,14 +16,18 @@ router.get("/", async (req, res) => {
 // POST tambah buku baru
 router.post("/", async (req, res) => {
   const { kode, nama } = req.body;
-  if (!kode || !nama)
+  if (!kode || !nama) {
     return res.status(400).json({ error: "Kode dan nama wajib diisi" });
+  }
   try {
-    await db.execute("INSERT INTO buku (kode, nama) VALUES (?, ?)", [
-      kode.toUpperCase(),
-      nama,
+    const { data, error } = await supabase.from("buku").insert([
+      {
+        kode: kode.toUpperCase().trim(),
+        nama: nama.trim(),
+      },
     ]);
-    res.json({ message: "Buku berhasil ditambahkan" });
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: "Buku berhasil ditambahkan", data });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -34,7 +37,8 @@ router.post("/", async (req, res) => {
 router.delete("/:kode", async (req, res) => {
   const { kode } = req.params;
   try {
-    await db.execute("DELETE FROM buku WHERE kode = ?", [kode]);
+    const { error } = await supabase.from("buku").delete().eq("kode", kode);
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ message: "Buku berhasil dihapus" });
   } catch (err) {
     res.status(500).json({ error: err.message });

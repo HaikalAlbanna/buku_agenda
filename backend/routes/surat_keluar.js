@@ -1,188 +1,141 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../db");
+const supabase = require("../supabase");
 
-/* ===================================================
-   GET - Export (WAJIB DI ATAS /:id)
-=================================================== */
-router.get("/export", async (req, res) => {
-  try {
-    const [rows] = await db.execute(`
-      SELECT 
-        id,
-        buku_kode,
-        tipe_kode,
-        nomor_urut,
-        nomor_surat,
-        tanggal,
-        alamat_dituju,
-        perihal,
-        pdf_file_name
-      FROM surat_keluar
-      ORDER BY tanggal DESC
-    `);
-
-    res.json(rows);
-  } catch (error) {
-    console.error("🔥 EXPORT ERROR DETAIL:", error); // WAJIB ADA
-    res.status(500).json({
-      message: "Gagal export data",
-      error: error.message,
-    });
-  }
-});
-
-/* ===================================================
-   GET - Ambil semua surat keluar
-=================================================== */
+// GET semua surat keluar
 router.get("/", async (req, res) => {
   try {
-    const [rows] = await db.execute(
-      "SELECT * FROM surat_keluar ORDER BY tanggal DESC",
-    );
-    res.json(rows);
-  } catch (error) {
-    console.error("GET surat_keluar error:", error);
-    res.status(500).json({ message: "Gagal mengambil data surat keluar" });
+    const { data, error } = await supabase
+      .from("surat_keluar")
+      .select("*")
+      .order("tanggal", { ascending: false });
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-/* ===================================================
-   GET - Ambil berdasarkan ID
-=================================================== */
+// GET export surat keluar
+router.get("/export", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("surat_keluar")
+      .select("*")
+      .order("tanggal", { ascending: false });
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET detail surat keluar
 router.get("/:id", async (req, res) => {
   try {
-    const [rows] = await db.execute("SELECT * FROM surat_keluar WHERE id = ?", [
-      req.params.id,
-    ]);
+    const { data, error } = await supabase
+      .from("surat_keluar")
+      .select("*")
+      .eq("id", req.params.id)
+      .single();
 
-    if (rows.length === 0) {
-      return res.status(404).json({ message: "Data tidak ditemukan" });
-    }
-
-    res.json(rows[0]);
-  } catch (error) {
-    console.error("GET by ID error:", error);
-    res.status(500).json({ message: "Gagal mengambil data" });
+    if (error) return res.status(404).json({ error: "Surat tidak ditemukan" });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-/* ===================================================
-   POST
-=================================================== */
+// POST tambah surat keluar
 router.post("/", async (req, res) => {
-  try {
-    const {
-      id,
-      bukuKode,
-      tipeKode,
-      nomorUrut,
-      nomorSurat,
-      tanggal,
-      alamatDituju,
-      perihal,
-      pdfFileName,
-      pdfData,
-    } = req.body;
+  const {
+    id,
+    bukuKode,
+    tipeKode,
+    nomorUrut,
+    nomorSurat,
+    tanggal,
+    alamatDituju,
+    perihal,
+    pdfFileName,
+    pdfData,
+  } = req.body;
 
-    await db.execute(
-      `INSERT INTO surat_keluar
-       (id, buku_kode, tipe_kode, nomor_urut, nomor_surat,
-        tanggal, alamat_dituju, perihal,
-        pdf_file_name, pdf_data)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
+  try {
+    const { data, error } = await supabase.from("surat_keluar").insert([
+      {
         id,
-        bukuKode,
-        tipeKode,
-        nomorUrut,
-        nomorSurat,
+        buku_kode: bukuKode,
+        tipe_kode: tipeKode,
+        nomor_urut: nomorUrut,
+        nomor_surat: nomorSurat,
         tanggal,
-        alamatDituju,
+        alamat_dituju: alamatDituju || null,
         perihal,
-        pdfFileName || null,
-        pdfData || null,
-      ],
-    );
-
-    res.status(201).json({ message: "Surat keluar berhasil ditambahkan" });
-  } catch (error) {
-    console.error("POST surat_keluar error:", error);
-    res.status(500).json({ message: "Gagal menambahkan data" });
-  }
-});
-
-/* ===================================================
-   PUT
-=================================================== */
-router.put("/:id", async (req, res) => {
-  try {
-    const {
-      bukuKode,
-      tipeKode,
-      nomorUrut,
-      nomorSurat,
-      tanggal,
-      alamatDituju,
-      perihal,
-      pdfFileName,
-      pdfData,
-    } = req.body;
-
-    const [result] = await db.execute(
-      `UPDATE surat_keluar SET
-        buku_kode = ?,
-        tipe_kode = ?,
-        nomor_urut = ?,
-        nomor_surat = ?,
-        tanggal = ?,
-        alamat_dituju = ?,
-        perihal = ?,
-        pdf_file_name = ?,
-        pdf_data = ?
-       WHERE id = ?`,
-      [
-        bukuKode,
-        tipeKode,
-        nomorUrut,
-        nomorSurat,
-        tanggal,
-        alamatDituju,
-        perihal,
-        pdfFileName || null,
-        pdfData || null,
-        req.params.id,
-      ],
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Data tidak ditemukan" });
-    }
-
-    res.json({ message: "Surat keluar berhasil diperbarui" });
-  } catch (error) {
-    console.error("PUT surat_keluar error:", error);
-    res.status(500).json({ message: "Gagal memperbarui data" });
-  }
-});
-
-/* ===================================================
-   DELETE
-=================================================== */
-router.delete("/:id", async (req, res) => {
-  try {
-    const [result] = await db.execute("DELETE FROM surat_keluar WHERE id = ?", [
-      req.params.id,
+        pdf_file_name: pdfFileName || null,
+        pdf_data: pdfData || null,
+      },
     ]);
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Data tidak ditemukan" });
-    }
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: "Surat keluar berhasil ditambahkan", data });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
+// PUT update surat keluar
+router.put("/:id", async (req, res) => {
+  const { id } = req.params;
+  const {
+    bukuKode,
+    tipeKode,
+    nomorUrut,
+    nomorSurat,
+    tanggal,
+    alamatDituju,
+    perihal,
+    pdfFileName,
+    pdfData,
+  } = req.body;
+
+  try {
+    const updateData = {
+      buku_kode: bukuKode,
+      tipe_kode: tipeKode,
+      nomor_urut: nomorUrut,
+      nomor_surat: nomorSurat,
+      tanggal,
+      alamat_dituju: alamatDituju || null,
+      perihal,
+    };
+
+    if (pdfFileName !== undefined) updateData.pdf_file_name = pdfFileName;
+    if (pdfData !== undefined) updateData.pdf_data = pdfData;
+
+    const { data, error } = await supabase
+      .from("surat_keluar")
+      .update(updateData)
+      .eq("id", id);
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: "Surat keluar berhasil diperbarui", data });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE surat keluar
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { error } = await supabase.from("surat_keluar").delete().eq("id", id);
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ message: "Surat keluar berhasil dihapus" });
-  } catch (error) {
-    console.error("DELETE surat_keluar error:", error);
-    res.status(500).json({ message: "Gagal menghapus data" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

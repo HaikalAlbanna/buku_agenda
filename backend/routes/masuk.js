@@ -1,28 +1,42 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../db"); // pastikan ini sudah .promise()
+const supabase = require("../supabase");
 
 // GET semua surat masuk
 router.get("/", async (req, res) => {
   try {
-    const [rows] = await db.execute(
-      "SELECT * FROM masuk ORDER BY tanggal DESC",
-    );
-    res.json(rows);
+    const { data, error } = await supabase
+      .from("masuk")
+      .select("*")
+      .order("id", { ascending: false });
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// POST surat masuk
+// POST tambah surat masuk baru
 router.post("/", async (req, res) => {
   const { nomor_surat, tanggal, surat_dari, perihal, arsip_pdf } = req.body;
+  if (!nomor_surat || !tanggal || !surat_dari || !perihal) {
+    return res.status(400).json({ error: "Data surat masuk belum lengkap" });
+  }
+
   try {
-    await db.execute(
-      `INSERT INTO masuk (nomor_surat, tanggal, surat_dari, perihal, arsip_pdf) VALUES (?, ?, ?, ?, ?)`,
-      [nomor_surat, tanggal, surat_dari, perihal, arsip_pdf],
-    );
-    res.json({ message: "✅ Surat masuk berhasil ditambahkan" });
+    const { data, error } = await supabase.from("masuk").insert([
+      {
+        nomor_surat,
+        tanggal,
+        surat_dari,
+        perihal,
+        arsip_pdf: arsip_pdf || null,
+      },
+    ]).select();
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: "Surat masuk berhasil ditambahkan", data });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -32,12 +46,26 @@ router.post("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
   const { nomor_surat, tanggal, surat_dari, perihal, arsip_pdf } = req.body;
+
   try {
-    await db.execute(
-      `UPDATE masuk SET nomor_surat=?, tanggal=?, surat_dari=?, perihal=?, arsip_pdf=? WHERE id=?`,
-      [nomor_surat, tanggal, surat_dari, perihal, arsip_pdf, id],
-    );
-    res.json({ message: "✏️ Surat masuk berhasil diupdate" });
+    const updateData = {
+      nomor_surat,
+      tanggal,
+      surat_dari,
+      perihal,
+    };
+    if (arsip_pdf !== undefined) {
+      updateData.arsip_pdf = arsip_pdf;
+    }
+
+    const { data, error } = await supabase
+      .from("masuk")
+      .update(updateData)
+      .eq("id", id)
+      .select();
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: "Surat masuk berhasil diupdate", data });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -47,8 +75,9 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    await db.execute("DELETE FROM masuk WHERE id=?", [id]);
-    res.json({ message: "🗑 Surat masuk berhasil dihapus" });
+    const { error } = await supabase.from("masuk").delete().eq("id", id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: "Surat masuk berhasil dihapus" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
