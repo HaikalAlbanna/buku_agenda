@@ -60,19 +60,34 @@ CREATE TABLE IF NOT EXISTS surat_keluar (
 CREATE INDEX IF NOT EXISTS idx_surat_keluar_tanggal ON surat_keluar (tanggal DESC);
 CREATE INDEX IF NOT EXISTS idx_masuk_tanggal ON masuk (tanggal DESC);
 
--- 7. Nonaktifkan Row Level Security (RLS) agar API Key Publishable / Anon bisa CRUD
-ALTER TABLE users DISABLE ROW LEVEL SECURITY;
-ALTER TABLE buku DISABLE ROW LEVEL SECURITY;
-ALTER TABLE tipe_surat DISABLE ROW LEVEL SECURITY;
-ALTER TABLE masuk DISABLE ROW LEVEL SECURITY;
-ALTER TABLE surat_keluar DISABLE ROW LEVEL SECURITY;
-
--- 8. Berikan Hak Akses Penuh (Grant Permissions)
+-- 7. Berikan Hak Akses ke Schema Public
+GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, anon, authenticated, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO postgres, anon, authenticated, service_role;
 
+-- 8. Aktifkan RLS dan Buat Policy Akses Penuh (Agar Publishable Key bisa SELECT, INSERT, UPDATE, DELETE)
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE buku ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tipe_surat ENABLE ROW LEVEL SECURITY;
+ALTER TABLE masuk ENABLE ROW LEVEL SECURITY;
+ALTER TABLE surat_keluar ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public full access users" ON users;
+CREATE POLICY "Public full access users" ON users FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public full access buku" ON buku;
+CREATE POLICY "Public full access buku" ON buku FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public full access tipe_surat" ON tipe_surat;
+CREATE POLICY "Public full access tipe_surat" ON tipe_surat FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public full access masuk" ON masuk;
+CREATE POLICY "Public full access masuk" ON masuk FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public full access surat_keluar" ON surat_keluar;
+CREATE POLICY "Public full access surat_keluar" ON surat_keluar FOR ALL USING (true) WITH CHECK (true);
+
 -- 9. Seed Akun Default Admin (Username: admin | Password: admin123)
--- Hash bcrypt valid untuk 'admin123'
 INSERT INTO users (username, nama, password, role)
 VALUES ('admin', 'Administrator', '$2b$10$gfZ8CtNDwoj7f.gxajTBTeY3Tkge68v3nRkyyD8B9NtNSlozWMxuS', 'admin')
 ON CONFLICT (username) DO UPDATE 
@@ -88,7 +103,8 @@ INSERT INTO buku (kode, nama) VALUES
   ('UM', 'Umum'),
   ('PW', 'Pengawasan'),
   ('PK', 'Pemasyarakatan')
-ON CONFLICT (kode) DO NOTHING;
+ON CONFLICT (kode) DO UPDATE 
+SET nama = EXCLUDED.nama;
 
 -- 11. Seed Master Data Tipe Surat
 INSERT INTO tipe_surat (buku_kode, kode, nama) VALUES
@@ -108,4 +124,8 @@ INSERT INTO tipe_surat (buku_kode, kode, nama) VALUES
   ('PW', '07.02', 'Audit Internal'),
   ('PK', '08.01', 'Pembinaan Narapidana'),
   ('PK', '08.02', 'Keamanan dan Ketertiban')
-ON CONFLICT (buku_kode, kode) DO NOTHING;
+ON CONFLICT (buku_kode, kode) DO UPDATE 
+SET nama = EXCLUDED.nama;
+
+-- 12. Tampilkan Hasil Data Buku
+SELECT * FROM buku ORDER BY kode ASC;
