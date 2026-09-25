@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Penomoran Surat</title>
+  <style>
+    /* ============ RESET & BASE ============ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --fg: #0f172a;
+      --card: #ffffff;
+      --card-fg: #0f172a;
+      --muted: #f1f5f9;
+      --muted-fg: #64748b;
+      --primary: #1e293b;
+      --primary-fg: #f8fafc;
+      --secondary: #f1f5f9;
+      --secondary-fg: #1e293b;
+      --destructive: #ef4444;
+      --destructive-fg: #ffffff;
+      --border: #e2e8f0;
+      --input: #e2e8f0;
+      --ring: #0f172a;
+      --radius: 0.5rem;
+      --sidebar-bg: #fafafa;
+      --sidebar-fg: #3f3f46;
+      --sidebar-accent: #f4f4f5;
+      --sidebar-border: #e4e4e7;
+      --accent: #f1f5f9;
+      --accent-fg: #1e293b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+    }
+
+    /* ============ LAYOUT ============ */
+    .app-layout { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 240px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--sidebar-border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-logo {
+      width: 32px; height: 32px;
+      background: var(--primary);
+      color: var(--primary-fg);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 12px;
+    }
+
+    .sidebar-title { font-size: 14px; font-weight: 600; color: var(--sidebar-fg); }
+    .sidebar-subtitle { font-size: 11px; color: var(--muted-fg); }
+
+    .sidebar-label {
+      padding: 16px 16px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted-fg);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .sidebar-menu { list-style: none; padding: 0 8px; }
+
+    .sidebar-menu-item a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 14px;
+      color: var(--sidebar-fg);
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .sidebar-menu-item a:hover { background: var(--sidebar-accent); }
+    .sidebar-menu-item a.active { background: var(--sidebar-accent); font-weight: 500; color: var(--primary); }
+
+    .sidebar-menu-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .sidebar-user {
+      margin-top: auto;
+      padding: 12px 16px;
+      border-top: 1px solid var(--sidebar-border);
+      font-size: 12px;
+      color: var(--muted-fg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-user-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--primary-fg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+
+    .main-area { flex: 1; display: flex; flex-direction: column; }
+
+    .topbar {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      background: var(--bg);
+    }
+
+    .topbar h1 { font-size: 14px; font-weight: 600; margin-left: 12px; }
+
+    .content { flex: 1; padding: 24px; overflow: auto; background: var(--muted); background: rgba(241,245,249,0.3); }
+
+    /* ============ COMPONENTS ============ */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .card-header { padding: 16px 20px 8px; }
+    .card-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .card-content { padding: 8px 20px 20px; }
+
+    .stat-card { cursor: pointer; transition: box-shadow 0.2s; }
+    .stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .stat-value { font-size: 30px; font-weight: 700; }
+    .stat-label { font-size: 14px; color: var(--muted-fg); font-weight: 500; }
+
+    /* Grid */
+    .grid { display: grid; gap: 16px; }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+    @media (max-width: 768px) {
+      .grid-3, .grid-2, .grid-cols-2 { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+
+    .space-y-2 > * + * { margin-top: 8px; }
+    .space-y-3 > * + * { margin-top: 12px; }
+    .space-y-4 > * + * { margin-top: 16px; }
+    .space-y-6 > * + * { margin-top: 24px; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; padding: 10px 16px; font-weight: 500; color: var(--muted-fg); border-bottom: 1px solid var(--border); font-size: 13px; }
+    td { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    .mono { font-family: 'SF Mono', 'Consolas', 'Courier New', monospace; font-size: 12px; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
+    .text-center { text-align: center; }
+    .text-muted { color: var(--muted-fg); }
+    .text-xs { font-size: 12px; }
+    .text-sm { font-size: 14px; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn svg { width: 16px; height: 16px; }
+
+    .btn-primary { background: var(--primary); color: var(--primary-fg); }
+    .btn-primary:hover { opacity: 0.9; }
+
+    .btn-secondary { background: var(--secondary); color: var(--secondary-fg); }
+    .btn-secondary:hover { background: #e2e8f0; }
+
+    .btn-outline { background: var(--bg); color: var(--fg); border: 1px solid var(--input); }
+    .btn-outline:hover { background: var(--accent); }
+
+    .btn-ghost { background: transparent; color: var(--fg); padding: 6px; border-radius: 6px; }
+    .btn-ghost:hover { background: var(--accent); }
+
+    .btn-destructive { background: var(--destructive); color: var(--destructive-fg); }
+    .btn-destructive:hover { opacity: 0.9; }
+
+    .btn-sm { padding: 6px 12px; font-size: 13px; }
+    .btn-icon { padding: 8px; width: 36px; height: 36px; }
+    .btn-full { width: 100%; }
+
+    /* Inputs */
+    .input, .select-input {
+      width: 100%;
+      height: 40px;
+      padding: 8px 12px;
+      border: 1px solid var(--input);
+      border-radius: 6px;
+      font-size: 14px;
+      background: var(--bg);
+      color: var(--fg);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .input:focus, .select-input:focus {
+      border-color: var(--ring);
+      box-shadow: 0 0 0 2px rgba(15,23,42,0.1);
+    }
+
+    .label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+
+    /* Dialog / Modal */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal {
+      background: var(--bg);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    }
+
+    .modal-header { margin-bottom: 16px; }
+    .modal-title { font-size: 18px; font-weight: 600; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+    /* Flex helpers */
+    .flex { display: flex; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-1 { gap: 4px; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .gap-4 { gap: 16px; }
+
+    /* Accordion */
+    .accordion-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
+      margin-bottom: 8px;
+    }
+
+    .accordion-trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      text-align: left;
+    }
+
+    .accordion-trigger:hover { background: rgba(0,0,0,0.02); }
+
+    .accordion-trigger .label-group { display: flex; align-items: center; gap: 12px; }
+    .accordion-trigger .kode { font-weight: 600; }
+    .accordion-trigger .nama { color: var(--muted-fg); }
+    .accordion-trigger .count { font-size: 12px; color: var(--muted-fg); }
+
+    .accordion-trigger .chevron {
+      transition: transform 0.2s;
+      width: 16px; height: 16px;
+    }
+
+    .accordion-item.open .accordion-trigger .chevron { transform: rotate(180deg); }
+
+    .accordion-content {
+      display: none;
+      padding: 0 16px 16px;
+    }
+
+    .accordion-item.open .accordion-content { display: block; }
+
+    /* Preview box */
+    .preview-box {
+      background: var(--muted);
+      border-radius: 6px;
+      padding: 12px;
+    }
+
+    .preview-label { font-size: 12px; color: var(--muted-fg); }
+    .preview-value { font-family: monospace; font-size: 14px; font-weight: 600; }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 200;
+    }
+
+    .toast {
+      background: var(--fg);
+      color: var(--bg);
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-top: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast-error { background: var(--destructive); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Section header */
+    .page-header { display: flex; align-items: center; justify-content: space-between; }
+    .page-title { font-size: 24px; font-weight: 700; }
+
+    /* Filter row */
+    .filter-row { display: flex; align-items: center; gap: 8px; }
+    .filter-row .label { margin-bottom: 0; font-size: 14px; }
+
+    /* Misc */
+    .hidden { display: none !important; }
+    .py-8 { padding: 32px 0; }
+    .mb-3 { margin-bottom: 12px; }
+    .mb-4 { margin-bottom: 16px; }
+    .mt-1 { margin-top: 4px; }
+
+    .icon-link { color: var(--primary); cursor: pointer; }
+    .icon-link:hover { opacity: 0.7; }
+
+    .text-destructive { color: var(--destructive); }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid var(--muted);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: rgba(255,255,255,0.8);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 300;
+      font-size: 16px;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <span>Memuat...</span>
+  </div>
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">SP</div>
+        <div>
+          <div class="sidebar-title">Surat Digital</div>
+          <div class="sidebar-subtitle">Penomoran & Arsip</div>
+        </div>
+      </div>
+      <div class="sidebar-label">Menu Utama</div>
+      <ul class="sidebar-menu">
+        <li class="sidebar-menu-item"><a onclick="showPage('dashboard')" id="nav-dashboard" class="active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span>Dashboard</span>
+        </a></li>
+        <li class="sidebar-menu-item"><a onclick="showPage('surat-keluar')" id="nav-surat-keluar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <span>Surat Keluar</span>
+        </a></li>
+        <li class="sidebar-menu-item"><a onclick="showPage('surat-masuk')" id="nav-surat-masuk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><line x1="12" y1="13" x2="12" y2="20"/></svg>
+          <span>Surat Masuk</span>
+        </a></li>
+        <li class="sidebar-menu-item"><a onclick="showPage('kelola-buku')" id="nav-kelola-buku">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span>Kelola Buku</span>
+        </a></li>
+        <li class="sidebar-menu-item"><a onclick="showPage('export')" id="nav-export">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Export & Backup</span>
+        </a></li>
+      </ul>
+      <div class="sidebar-user" id="sidebar-user">
+        <div class="sidebar-user-avatar" id="user-avatar">?</div>
+        <span id="user-email">Loading...</span>
+      </div>
+    </nav>
+
+    <!-- Main -->
+    <div class="main-area">
+      <header class="topbar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <h1>Sistem Penomoran Surat</h1>
+      </header>
+
+      <div class="content">
+        <!-- ====== DASHBOARD ====== -->
+        <div id="page-dashboard" class="page space-y-6">
+          <h2 class="page-title">Dashboard</h2>
+          <div class="grid grid-3" id="dashboard-stats"></div>
+          <div class="grid grid-2">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Surat Keluar per Buku</div></div>
+              <div class="card-content" id="dashboard-per-buku"><p class="text-sm text-muted">Memuat...</p></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Surat Terbaru</div></div>
+              <div class="card-content" id="dashboard-recent"><p class="text-sm text-muted">Memuat...</p></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ====== SURAT KELUAR ====== -->
+        <div id="page-surat-keluar" class="page hidden space-y-4">
+          <div class="page-header">
+            <h2 class="page-title">Surat Keluar</h2>
+            <button class="btn btn-primary" onclick="openAddSuratKeluar()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Tambah Surat
+            </button>
+          </div>
+          <div class="filter-row">
+            <span class="label">Filter Buku:</span>
+            <select class="select-input" style="width:200px" id="filter-buku-keluar" onchange="renderSuratKeluar()">
+              <option value="all">Semua Buku</option>
+            </select>
+          </div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Nomor Surat</th>
+                  <th>Alamat Dituju</th>
+                  <th>Perihal</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="table-surat-keluar">
+                <tr><td colspan="5" class="text-center text-muted py-8">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ====== SURAT MASUK ====== -->
+        <div id="page-surat-masuk" class="page hidden space-y-4">
+          <div class="page-header">
+            <h2 class="page-title">Surat Masuk</h2>
+            <button class="btn btn-primary" onclick="openAddSuratMasuk()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Tambah Surat
+            </button>
+          </div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Nomor Surat</th>
+                  <th>Surat Dari</th>
+                  <th>Perihal</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="table-surat-masuk">
+                <tr><td colspan="5" class="text-center text-muted py-8">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ====== KELOLA BUKU ====== -->
+        <div id="page-kelola-buku" class="page hidden space-y-4">
+          <div class="page-header">
+            <h2 class="page-title">Kelola Buku & Kode Tipe</h2>
+            <button class="btn btn-primary" onclick="openAddBuku()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Tambah Buku
+            </button>
+          </div>
+          <div id="buku-list" class="space-y-2">
+            <p class="text-muted">Memuat...</p>
+          </div>
+        </div>
+
+        <!-- ====== EXPORT ====== -->
+        <div id="page-export" class="page hidden space-y-6">
+          <h2 class="page-title">Export & Backup</h2>
+          <div class="grid grid-2">
+            <div class="card">
+              <div class="card-header"><div class="card-title">📄 Export JSON</div></div>
+              <div class="card-content">
+                <p class="text-sm text-muted mb-4">Ekspor semua data dalam format JSON.</p>
+                <button class="btn btn-primary btn-full" onclick="handleExportJSON()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Export JSON
+                </button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">📊 Backup Tahunan</div></div>
+              <div class="card-content">
+                <p class="text-sm text-muted mb-4">Download data per tahun sebagai backup.</p>
+                <div class="space-y-3">
+                  <div>
+                    <label class="label">Pilih Tahun</label>
+                    <select class="select-input" id="backup-year"></select>
+                  </div>
+                  <button class="btn btn-secondary btn-full" onclick="handleBackup()">Backup & Download</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    // ============ STATE ============
+    let bukuList = [];
+    let suratKeluarList = [];
+    let suratMasukList = [];
+    let currentUser = { email: '', name: '' };
+    let currentPage = 'dashboard';
+
+    // ============ INIT ============
+    async function init() {
+      try {
+        currentUser = await run('getCurrentUser');
+        document.getElementById('user-email').textContent = currentUser.email;
+        document.getElementById('user-avatar').textContent = currentUser.name.substring(0,2).toUpperCase();
+
+        await loadAll();
+        document.getElementById('loading-overlay').classList.add('hidden');
+      } catch (e) {
+        document.getElementById('loading-overlay').innerHTML = '<div style="text-align:center"><h2>⛔ Akses Ditolak</h2><p>' + e.message + '</p></div>';
+      }
+    }
+
+    async function loadAll() {
+      bukuList = await run('getBukuList');
+      suratKeluarList = await run('getSuratKeluar');
+      suratMasukList = await run('getSuratMasukList');
+      populateFilterDropdowns();
+      renderCurrentPage();
+    }
+
+    function run(fn, ...args) {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(reject)
+          [fn](...args);
+      });
+    }
+
+    // ============ NAVIGATION ============
+    function showPage(page) {
+      currentPage = page;
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+      document.getElementById('page-' + page).classList.remove('hidden');
+      document.querySelectorAll('.sidebar-menu-item a').forEach(a => a.classList.remove('active'));
+      document.getElementById('nav-' + page).classList.add('active');
+      renderCurrentPage();
+    }
+
+    function renderCurrentPage() {
+      switch(currentPage) {
+        case 'dashboard': renderDashboard(); break;
+        case 'surat-keluar': renderSuratKeluar(); break;
+        case 'surat-masuk': renderSuratMasuk(); break;
+        case 'kelola-buku': renderBuku(); break;
+        case 'export': renderExport(); break;
+      }
+    }
+
+    // ============ TOAST ============
+    function showToast(msg, isError) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast' + (isError ? ' toast-error' : '');
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ============ MODAL HELPER ============
+    function showModal(title, bodyHtml, footerHtml) {
+      const existing = document.getElementById('modal-overlay');
+      if (existing) existing.remove();
+
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.id = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <div class="modal-header"><h3 class="modal-title">${title}</h3></div>
+          <div class="modal-body space-y-4">${bodyHtml}</div>
+          <div class="modal-footer">${footerHtml}</div>
+        </div>
+      `;
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+      document.body.appendChild(overlay);
+    }
+
+    function closeModal() {
+      const el = document.getElementById('modal-overlay');
+      if (el) el.remove();
+    }
+
+    // ============ CONFIRM DIALOG ============
+    function showConfirm(title, msg, onConfirm) {
+      showModal(title,
+        `<p class="text-sm">${msg}</p>`,
+        `<button class="btn btn-outline" onclick="closeModal()">Batal</button>
+         <button class="btn btn-destructive" id="confirm-btn">Hapus</button>`
+      );
+      document.getElementById('confirm-btn').onclick = () => { closeModal(); onConfirm(); };
+    }
+
+    // ============ DASHBOARD ============
+    function renderDashboard() {
+      const statsEl = document.getElementById('dashboard-stats');
+      statsEl.innerHTML = `
+        <div class="card stat-card" onclick="showPage('surat-keluar')">
+          <div class="card-header"><div class="card-title"><span class="stat-label">Surat Keluar</span></div></div>
+          <div class="card-content"><div class="stat-value">${suratKeluarList.length}</div></div>
+        </div>
+        <div class="card stat-card" onclick="showPage('surat-masuk')">
+          <div class="card-header"><div class="card-title"><span class="stat-label">Surat Masuk</span></div></div>
+          <div class="card-content"><div class="stat-value">${suratMasukList.length}</div></div>
+        </div>
+        <div class="card stat-card" onclick="showPage('kelola-buku')">
+          <div class="card-header"><div class="card-title"><span class="stat-label">Jenis Buku</span></div></div>
+          <div class="card-content"><div class="stat-value">${bukuList.length}</div></div>
+        </div>
+      `;
+
+      const perBukuEl = document.getElementById('dashboard-per-buku');
+      if (bukuList.length === 0) {
+        perBukuEl.innerHTML = '<p class="text-sm text-muted">Belum ada data buku.</p>';
+      } else {
+        perBukuEl.innerHTML = bukuList.map(b => {
+          const count = suratKeluarList.filter(s => s.bukuKode === b.kode).length;
+          return `<div class="flex items-center justify-between text-sm" style="padding:4px 0">
+            <span>${b.kode} — ${b.nama}</span><span style="font-weight:600">${count}</span>
+          </div>`;
+        }).join('');
+      }
+
+      const recentEl = document.getElementById('dashboard-recent');
+      const allRecent = [
+        ...suratKeluarList.slice(-3).reverse().map(s => ({...s, type:'Keluar'})),
+        ...suratMasukList.slice(-3).reverse().map(s => ({...s, type:'Masuk'}))
+      ].slice(0, 5);
+
+      if (allRecent.length === 0) {
+        recentEl.innerHTML = '<p class="text-sm text-muted">Belum ada surat.</p>';
+      } else {
+        recentEl.innerHTML = allRecent.map(s =>
+          `<div class="flex items-center justify-between text-sm" style="padding:4px 0">
+            <span class="truncate">${s.nomorSurat}</span><span class="text-xs text-muted">${s.type}</span>
+          </div>`
+        ).join('');
+      }
+    }
+
+    // ============ POPULATE FILTER ============
+    function populateFilterDropdowns() {
+      const filterEl = document.getElementById('filter-buku-keluar');
+      const currentVal = filterEl.value;
+      filterEl.innerHTML = '<option value="all">Semua Buku</option>' +
+        bukuList.map(b => `<option value="${b.kode}">${b.kode} — ${b.nama}</option>`).join('');
+      filterEl.value = currentVal || 'all';
+
+      // Backup years
+      const yearEl = document.getElementById('backup-year');
+      const curYear = new Date().getFullYear();
+      yearEl.innerHTML = Array.from({length:10}, (_,i) => `<option value="${curYear-i}">${curYear-i}</option>`).join('');
+    }
+
+    // ============ SURAT KELUAR ============
+    function renderSuratKeluar() {
+      const filter = document.getElementById('filter-buku-keluar').value;
+      const filtered = filter === 'all' ? suratKeluarList : suratKeluarList.filter(s => s.bukuKode === filter);
+      const tbody = document.getElementById('table-surat-keluar');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-8">Belum ada data surat keluar</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(s => `
+        <tr>
+          <td>${s.tanggal || ''}</td>
+          <td class="mono">${s.nomorSurat || ''}</td>
+          <td>${s.tujuan || ''}</td>
+          <td class="truncate">${s.perihal || ''}</td>
+          <td>
+            <div class="flex gap-1">
+              <button class="btn btn-ghost btn-icon" onclick="openEditSuratKeluar('${s.sheetName}',${s.rowIndex},'${esc(s.tanggal)}','${esc(s.perihal)}','${esc(s.tujuan)}','${esc(s.tipe)}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="btn btn-ghost btn-icon" onclick="confirmDeleteSuratKeluar('${s.sheetName}',${s.rowIndex})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--destructive)" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function esc(str) { return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+    function openAddSuratKeluar() {
+      const bukuOptions = bukuList.map(b => `<option value="${b.kode}">${b.kode} — ${b.nama}</option>`).join('');
+      showModal('Tambah Surat Keluar', `
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="label">Buku</label>
+            <select class="select-input" id="sk-buku" onchange="onBukuChange()">
+              <option value="">Pilih buku</option>${bukuOptions}
+            </select>
+          </div>
+          <div>
+            <label class="label">Kode Tipe</label>
+            <select class="select-input" id="sk-tipe"><option value="">Pilih tipe</option></select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="label">Nomor Urut</label>
+            <input class="input" id="sk-nomor" placeholder="0001">
+          </div>
+          <div>
+            <label class="label">Tanggal</label>
+            <input class="input" type="date" id="sk-tanggal" value="${new Date().toISOString().slice(0,10)}">
+          </div>
+        </div>
+        <div class="preview-box" id="sk-preview" style="display:none">
+          <div class="preview-label">Preview Nomor Surat</div>
+          <div class="preview-value" id="sk-preview-text"></div>
+        </div>
+        <div>
+          <label class="label">Alamat Dituju</label>
+          <input class="input" id="sk-tujuan" placeholder="Alamat tujuan surat">
+        </div>
+        <div>
+          <label class="label">Perihal</label>
+          <input class="input" id="sk-perihal" placeholder="Perihal surat">
+        </div>
+        <div>
+          <label class="label">Arsip PDF</label>
+          <input class="input" type="file" accept=".pdf" id="sk-pdf">
+        </div>
+      `, `
+        <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button class="btn btn-primary" onclick="saveSuratKeluar()">Tambah</button>
+      `);
+
+      // Bind preview update
+      ['sk-buku','sk-tipe','sk-nomor'].forEach(id => {
+        document.getElementById(id).addEventListener('change', updatePreview);
+        document.getElementById(id).addEventListener('input', updatePreview);
+      });
+    }
+
+    function onBukuChange() {
+      const bukuKode = document.getElementById('sk-buku').value;
+      const tipeEl = document.getElementById('sk-tipe');
+      const buku = bukuList.find(b => b.kode === bukuKode);
+
+      tipeEl.innerHTML = '<option value="">Pilih tipe</option>';
+      if (buku) {
+        tipeEl.innerHTML += buku.tipeSurat.map(t => `<option value="${t.kode}">${t.kode} — ${t.nama}</option>`).join('');
+      }
+
+      // Auto nomor urut
+      if (bukuKode) {
+        run('getNextNomorUrut', bukuKode).then(v => {
+          document.getElementById('sk-nomor').value = v;
+          updatePreview();
+        });
+      }
+      updatePreview();
+    }
+
+    function updatePreview() {
+      const buku = document.getElementById('sk-buku').value;
+      const tipe = document.getElementById('sk-tipe').value;
+      const nomor = document.getElementById('sk-nomor').value;
+      const previewEl = document.getElementById('sk-preview');
+      const textEl = document.getElementById('sk-preview-text');
+
+      if (buku && tipe && nomor) {
+        const nomorSurat = 'WP.6.PAS.26-' + buku + '.' + tipe + '-' + nomor.padStart(4, '0');
+        textEl.textContent = nomorSurat;
+        previewEl.style.display = 'block';
+      } else {
+        previewEl.style.display = 'none';
+      }
+    }
+
+    async function saveSuratKeluar() {
+      const buku = document.getElementById('sk-buku').value;
+      const tipe = document.getElementById('sk-tipe').value;
+      const nomor = document.getElementById('sk-nomor').value;
+      const tanggal = document.getElementById('sk-tanggal').value;
+      const tujuan = document.getElementById('sk-tujuan').value;
+      const perihal = document.getElementById('sk-perihal').value;
+
+      if (!buku || !tipe || !nomor || !tanggal || !perihal) {
+        showToast('Semua field wajib diisi', true);
+        return;
+      }
+
+      // PDF as base64
+      let pdfBase64 = '';
+      const pdfFile = document.getElementById('sk-pdf').files[0];
+      if (pdfFile) {
+        pdfBase64 = await fileToBase64(pdfFile);
+      }
+
+      try {
+        const result = await run('createSurat', { buku, tipe, nomorUrut: nomor, tanggal, perihal, tujuan, pdfBase64 });
+        showToast('Surat keluar ditambahkan: ' + result.nomorSurat);
+        closeModal();
+        suratKeluarList = await run('getSuratKeluar');
+        renderCurrentPage();
+      } catch (e) {
+        showToast('Error: ' + e.message, true);
+      }
+    }
+
+    function openEditSuratKeluar(sheetName, rowIndex, tanggal, perihal, tujuan, tipe) {
+      showModal('Edit Surat Keluar', `
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="label">Tanggal</label>
+            <input class="input" type="date" id="esk-tanggal" value="${tanggal}">
+          </div>
+          <div>
+            <label class="label">Tipe</label>
+            <input class="input" id="esk-tipe" value="${tipe}">
+          </div>
+        </div>
+        <div>
+          <label class="label">Alamat Dituju</label>
+          <input class="input" id="esk-tujuan" value="${tujuan}">
+        </div>
+        <div>
+          <label class="label">Perihal</label>
+          <input class="input" id="esk-perihal" value="${perihal}">
+        </div>
+      `, `
+        <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button class="btn btn-primary" onclick="saveEditSuratKeluar('${sheetName}',${rowIndex})">Simpan</button>
+      `);
+    }
+
+    async function saveEditSuratKeluar(sheetName, rowIndex) {
+      try {
+        await run('updateSuratKeluar', sheetName, rowIndex, {
+          tanggal: document.getElementById('esk-tanggal').value,
+          perihal: document.getElementById('esk-perihal').value,
+          tujuan: document.getElementById('esk-tujuan').value,
+          tipe: document.getElementById('esk-tipe').value,
+        });
+        showToast('Surat keluar diperbarui');
+        closeModal();
+        suratKeluarList = await run('getSuratKeluar');
+        renderCurrentPage();
+      } catch (e) {
+        showToast('Error: ' + e.message, true);
+      }
+    }
+
+    function confirmDeleteSuratKeluar(sheetName, rowIndex) {
+      showConfirm('Hapus Surat Keluar?', 'Data yang dihapus tidak bisa dikembalikan.', async () => {
+        try {
+          await run('deleteSuratKeluarRow', sheetName, rowIndex);
+          showToast('Surat keluar dihapus');
+          suratKeluarList = await run('getSuratKeluar');
+          renderCurrentPage();
+        } catch (e) {
+          showToast('Error: ' + e.message, true);
+        }
+      });
+    }
+
+    // ============ SURAT MASUK ============
+    function renderSuratMasuk() {
+      const tbody = document.getElementById('table-surat-masuk');
+      if (suratMasukList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-8">Belum ada data surat masuk</td></tr>';
+        return;
+      }
+      tbody.innerHTML = suratMasukList.map(s => `
+        <tr>
+          <td>${s.tanggal || ''}</td>
+          <td class="mono">${s.nomorSurat || ''}</td>
+          <td>${s.suratDari || ''}</td>
+          <td class="truncate">${s.perihal || ''}</td>
+          <td>
+            <div class="flex gap-1">
+              <button class="btn btn-ghost btn-icon" onclick="openEditSuratMasuk(${s.rowIndex},'${esc(s.nomorSurat)}','${esc(s.tanggal)}','${esc(s.suratDari)}','${esc(s.perihal)}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="btn btn-ghost btn-icon" onclick="confirmDeleteSuratMasuk(${s.rowIndex})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--destructive)" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openAddSuratMasuk() {
+      showModal('Tambah Surat Masuk', `
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="label">Nomor Surat</label><input class="input" id="sm-nomor" placeholder="Nomor surat masuk"></div>
+          <div><label class="label">Tanggal</label><input class="input" type="date" id="sm-tanggal" value="${new Date().toISOString().slice(0,10)}"></div>
+        </div>
+        <div><label class="label">Surat Dari</label><input class="input" id="sm-dari" placeholder="Pengirim surat"></div>
+        <div><label class="label">Perihal</label><input class="input" id="sm-perihal" placeholder="Perihal surat"></div>
+        <div><label class="label">Arsip PDF</label><input class="input" type="file" accept=".pdf" id="sm-pdf"></div>
+      `, `
+        <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button class="btn btn-primary" onclick="saveSuratMasuk()">Tambah</button>
+      `);
+    }
+
+    async function saveSuratMasuk() {
+      const nomorSurat = document.getElementById('sm-nomor').value;
+      const tanggal = document.getElementById('sm-tanggal').value;
+      const suratDari = document.getElementById('sm-dari').value;
+      const perihal = document.getElementById('sm-perihal').value;
+
+      if (!nomorSurat || !tanggal || !suratDari || !perihal) {
+        showToast('Semua field wajib diisi', true);
+        return;
+      }
+
+      let pdfBase64 = '';
+      const pdfFile = document.getElementById('sm-pdf').files[0];
+      if (pdfFile) pdfBase64 = await fileToBase64(pdfFile);
+
+      try {
+        await run('addSuratMasukEntry', { nomorSurat, tanggal, suratDari, perihal, pdfBase64 });
+        showToast('Surat masuk ditambahkan');
+        closeModal();
+        suratMasukList = await run('getSuratMasukList');
+        renderCurrentPage();
+      } catch (e) {
+        showToast('Error: ' + e.message, true);
+      }
+    }
+
+    function openEditSuratMasuk(rowIndex, nomorSurat, tanggal, suratDari, perihal) {
+      showModal('Edit Surat Masuk', `
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="label">Nomor Surat</label><input class="input" id="esm-nomor" value="${nomorSurat}"></div>
+          <div><label class="label">Tanggal</label><input class="input" type="date" id="esm-tanggal" value="${tanggal}"></div>
+        </div>
+        <div><label class="label">Surat Dari</label><input class="input" id="esm-dari" value="${suratDari}"></div>
+        <div><label class="label">Perihal</label><input class="input" id="esm-perihal" value="${perihal}"></div>
+      `, `
+        <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button class="btn btn-primary" onclick="saveEditSuratMasuk(${rowIndex})">Simpan</button>
+      `);
+    }
+
+    async function saveEditSuratMasuk(rowIndex) {
+      try {
+        await run('updateSuratMasukEntry', rowIndex, {
+          nomorSurat: document.getElementById('esm-nomor').value,
+          tanggal: document.getElementById('esm-tanggal').value,
+          suratDari: document.getElementById('esm-dari').value,
+          perihal: document.getElementById('esm-perihal').value,
+        });
+        showToast('Surat masuk diperbarui');
+        closeModal();
+        suratMasukList = await run('getSuratMasukList');
+        renderCurrentPage();
+      } catch (e) {
+        showToast('Error: ' + e.message, true);
+      }
+    }
+
+    function confirmDeleteSuratMasuk(rowIndex) {
+      showConfirm('Hapus Surat Masuk?', 'Data yang dihapus tidak bisa dikembalikan.', async () => {
+        try {
+          await run('deleteSuratMasukEntry', rowIndex);
+          showToast('Surat masuk dihapus');
+          suratMasukList = await run('getSuratMasukList');
+          renderCurrentPage();
+        } catch (e) {
+          showToast('Error: ' + e.message, true);
+        }
+      });
+    }
+
+    // ============ KELOLA BUKU ============
+    function renderBuku() {
+      const container = document.getElementById('buku-list');
+      if (bukuList.length === 0) {
+        container.innerHTML = '<div class="card"><div class="card-content py-8 text-center text-muted">Belum ada buku. Tambahkan buku baru.</div></div>';
+        return;
+      }
+
+      container.innerHTML = bukuList.map(b => `
+        <div class="accordion-item" id="acc-${b.kode}">
+          <button class="accordion-trigger" onclick="toggleAccordion('${b.kode}')">
+            <div class="label-group">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              <span class="kode">${b.kode}</span>
+              <span class="nama">— ${b.nama}</span>
+              <span class="count">(${b.tipeSurat.length} tipe)</span>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-content">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm" style="font-weight:500">Kode Tipe Surat</span>
+              <div class="flex gap-2">
+                <button class="btn btn-outline btn-sm" onclick="openAddTipe('${b.kode}')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Tambah Tipe
+                </button>
+                <button class="btn btn-destructive btn-sm" onclick="confirmDeleteBuku('${b.kode}')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  Hapus Buku
+                </button>
+              </div>
+            </div>
+            ${b.tipeSurat.length === 0
+              ? '<p class="text-sm text-muted">Belum ada kode tipe untuk buku ini.</p>'
+              : `<table>
+                  <thead><tr><th>Kode</th><th>Nama</th><th style="width:60px">Aksi</th></tr></thead>
+                  <tbody>
+                    ${b.tipeSurat.map(t => `
+                      <tr>
+                        <td class="mono">${t.kode}</td>
+                        <td>${t.nama}</td>
+                        <td>
+                          <button class="btn btn-ghost btn-icon" onclick="confirmDeleteTipe('${b.kode}','${t.kode}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="var(--destructive)" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                          </button>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>`
+            }
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleAccordion(kode) {
+      document.getElementById('acc-' + kode).classList.toggle('open');
+    }
+
+    function openAddBuku() {
+      showModal('Tambah Buku Baru', `
+        <div><label class="label">Kode Buku</label><input class="input" id="nb-kode" placeholder="Contoh: HK" maxlength="5" oninput="this.value=this.value.toUpperCase()"></div>
+        <div><label class="label">Nama Buku</label><input class="input" id="nb-nama" placeholder="Contoh: Hukum"></div>
+      `, `
+        <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button class="btn btn-primary" onclick="saveAddBuku()">Tambah</button>
+      `);
+    }
+
+    async function saveAddBuku() {
+      const kode = document.getElementById('nb-kode').value;
+      const nama = document.getElementById('nb-nama').value;
+      if (!kode || !nama) { showToast('Kode dan nama wajib diisi', true); return; }
+      try {
+        bukuList = await run('addBuku', kode, nama);
+        showToast('Buku baru ditambahkan');
+        closeModal();
+        populateFilterDropdowns();
+        renderBuku();
+      } catch (e) {
+        showToast('Error: ' + e.message, true);
+      }
+    }
+
+    function confirmDeleteBuku(kode) {
+      showConfirm('Hapus Buku ' + kode + '?', 'Semua kode tipe di buku ini juga akan dihapus. Tindakan ini tidak bisa dibatalkan.', async () => {
+        try {
+          bukuList = await run('deleteBuku', kode);
+          showToast('Buku dihapus');
+          populateFilterDropdowns();
+          renderBuku();
+        } catch (e) {
+          showToast('Error: ' + e.message, true);
+        }
+      });
+    }
+
+    function openAddTipe(bukuKode) {
+      showModal('Tambah Kode Tipe — Buku ' + bukuKode, `
+        <div><label class="label">Kode Tipe</label><input class="input" id="nt-kode" placeholder="Contoh: 01.01"></div>
+        <div><label class="label">Nama Tipe</label><input class="input" id="nt-nama" placeholder="Contoh: Kebijakan Pengawasan"></div>
+      `, `
+        <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button class="btn btn-primary" onclick="saveAddTipe('${bukuKode}')">Tambah</button>
+      `);
+    }
+
+    async function saveAddTipe(bukuKode) {
+      const kode = document.getElementById('nt-kode').value;
+      const nama = document.getElementById('nt-nama').value;
+      if (!kode || !nama) { showToast('Kode dan nama tipe wajib diisi', true); return; }
+      try {
+        bukuList = await run('addTipeSurat', bukuKode, kode, nama);
+        showToast('Kode tipe ditambahkan');
+        closeModal();
+        renderBuku();
+      } catch (e) {
+        showToast('Error: ' + e.message, true);
+      }
+    }
+
+    function confirmDeleteTipe(bukuKode, tipeKode) {
+      showConfirm('Hapus Kode Tipe ' + tipeKode + '?', 'Tindakan ini tidak bisa dibatalkan.', async () => {
+        try {
+          bukuList = await run('deleteTipeSurat', bukuKode, tipeKode);
+          showToast('Kode tipe dihapus');
+          renderBuku();
+        } catch (e) {
+          showToast('Error: ' + e.message, true);
+        }
+      });
+    }
+
+    // ============ EXPORT ============
+    function renderExport() {
+      // Already static HTML, nothing to render
+    }
+
+    async function handleExportJSON() {
+      try {
+        const data = await run('getExportData');
+        const json = JSON.stringify(data, null, 2);
+        downloadBlob(json, 'surat-backup-' + new Date().toISOString().slice(0,10) + '.json', 'application/json');
+        showToast('Data diekspor ke JSON');
+      } catch (e) {
+        showToast('Error: ' + e.message, true);
+      }
+    }
+
+    async function handleBackup() {
+      const year = document.getElementById('backup-year').value;
+      try {
+        const data = await run('getExportData', parseInt(year));
+        if (data.suratKeluar.length === 0 && data.suratMasuk.length === 0) {
+          showToast('Tidak ada data untuk tahun ' + year);
+          return;
+        }
+        const json = JSON.stringify(data, null, 2);
+        downloadBlob(json, 'backup-tahun-' + year + '.json', 'application/json');
+        showToast('Backup tahun ' + year + ' berhasil didownload');
+      } catch (e) {
+        showToast('Error: ' + e.message, true);
+      }
+    }
+
+    // ============ UTILS ============
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function downloadBlob(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ============ START ============
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+CREATE TABLE IF NOT EXISTS users (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  nama VARCHAR(100) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(20) NOT NULL DEFAULT 'admin',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS buku (
+  kode VARCHAR(20) PRIMARY KEY,
+  nama VARCHAR(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS tipe_surat (
+  buku_kode VARCHAR(20) NOT NULL,
+  kode VARCHAR(20) NOT NULL,
+  nama VARCHAR(100) NOT NULL,
+  PRIMARY KEY (buku_kode, kode),
+  CONSTRAINT fk_tipe_surat_buku
+    FOREIGN KEY (buku_kode)
+    REFERENCES buku(kode)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS masuk (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  nomor_surat VARCHAR(100) NOT NULL,
+  tanggal DATE NOT NULL,
+  surat_dari VARCHAR(150) NOT NULL,
+  perihal VARCHAR(255) NOT NULL,
+  arsip_pdf LONGTEXT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS surat_keluar (
+  id VARCHAR(50) NOT NULL,
+  buku_kode VARCHAR(20) NOT NULL,
+  tipe_kode VARCHAR(20) NOT NULL,
+  nomor_urut VARCHAR(20) NOT NULL,
+  nomor_surat VARCHAR(120) NOT NULL,
+  tanggal DATE NOT NULL,
+  alamat_dituju VARCHAR(255) NULL,
+  perihal VARCHAR(255) NOT NULL,
+  pdf_file_name VARCHAR(255) NULL,
+  pdf_data LONGTEXT NULL,
+  PRIMARY KEY (id),
+  KEY idx_surat_keluar_tanggal (tanggal),
+  CONSTRAINT fk_surat_keluar_buku
+    FOREIGN KEY (buku_kode)
+    REFERENCES buku(kode)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT,
+  CONSTRAINT fk_surat_keluar_tipe
+    FOREIGN KEY (buku_kode, tipe_kode)
+    REFERENCES tipe_surat(buku_kode, kode)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
