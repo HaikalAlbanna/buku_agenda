@@ -2,14 +2,19 @@ const { createClient } = require("@supabase/supabase-js");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
-const SUPABASE_URL =
-  process.env.SUPABASE_URL || "https://trdtkjupfevddwfpbmlc.supabase.co";
-
+const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_KEY =
-  process.env.SUPABASE_KEY ||
-  process.env.SUPABASE_ANON_KEY ||
-  "sb_publishable_wApXcE_OIo8g0dZRKSt2Vw_-kSspZxe";
+  process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || "";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.warn(
+    "⚠️  PERINGATAN: Variabel SUPABASE_URL dan SUPABASE_KEY belum disetel pada environment."
+  );
+}
+
+const supabase = createClient(
+  SUPABASE_URL || "https://placeholder.supabase.co",
+  SUPABASE_KEY || "placeholder-key"
+);
 
 module.exports = supabase;
