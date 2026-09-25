@@ -3,7 +3,7 @@ const router = express.Router();
 const supabase = require("../supabase");
 const localStore = require("../local_store");
 
-// Cache sederhana untuk optimasi respon cepat (< 5ms)
+// Cache sederhana untuk optimasi respon super cepat (< 5ms)
 let cachedBuku = null;
 let cachedBukuWithTipe = null;
 let lastCacheTime = 0;
@@ -30,26 +30,53 @@ router.get("/", async (req, res) => {
 
   try {
     if (include === "tipe") {
-      // 1 Query gabungan Buku + Tipe Surat
-      const { data, error } = await supabase
-        .from("buku")
-        .select("kode, nama, tipeSurat:tipe_surat (kode, nama)")
-        .order("kode", { ascending: true });
+      let dbBuku = null;
+      let dbTipe = null;
 
-      if (!error && data && data.length > 0) {
-        cachedBukuWithTipe = data;
-        lastCacheTime = now;
-        return res.json(data);
+      try {
+        const [resBuku, resTipe] = await Promise.all([
+          supabase
+            .from("buku")
+            .select("kode, nama")
+            .order("kode", { ascending: true }),
+          supabase
+            .from("tipe_surat")
+            .select("buku_kode, kode, nama")
+            .order("kode", { ascending: true }),
+        ]);
+
+        if (!resBuku.error && resBuku.data && resBuku.data.length > 0) {
+          dbBuku = resBuku.data;
+        }
+        if (!resTipe.error && resTipe.data && resTipe.data.length > 0) {
+          dbTipe = resTipe.data;
+        }
+      } catch (e) {
+        // Abaikan error Supabase, fallback ke localStore
       }
 
-      // Fallback local store jika Supabase belum siap/kosong
-      const fallbackList = localStore.getBuku().map((b) => ({
-        ...b,
-        tipeSurat: localStore.getTipeSurat(b.kode) || [],
+      // Sumber buku: Supabase jika ada, jika tidak gunakan localStore
+      const bukuList = dbBuku && dbBuku.length > 0 ? dbBuku : localStore.getBuku();
+
+      // Sumber tipe_surat: Supabase jika ada, jika tidak gunakan localStore (215 data lengkap)
+      const tipeList = dbTipe && dbTipe.length > 0 ? dbTipe : localStore.getTipeSurat();
+
+      // Kelompokkan tipe surat berdasarkan buku_kode
+      const map = {};
+      for (const t of tipeList) {
+        if (!map[t.buku_kode]) map[t.buku_kode] = [];
+        map[t.buku_kode].push({ kode: t.kode, nama: t.nama });
+      }
+
+      const result = bukuList.map((b) => ({
+        kode: b.kode,
+        nama: b.nama,
+        tipeSurat: map[b.kode] || [],
       }));
-      cachedBukuWithTipe = fallbackList;
+
+      cachedBukuWithTipe = result;
       lastCacheTime = now;
-      return res.json(fallbackList);
+      return res.json(result);
     }
 
     // Default: daftar buku saja
@@ -70,11 +97,20 @@ router.get("/", async (req, res) => {
     return res.json(fallbackBuku);
   } catch (err) {
     if (include === "tipe") {
-      const fallbackList = localStore.getBuku().map((b) => ({
-        ...b,
-        tipeSurat: localStore.getTipeSurat(b.kode) || [],
-      }));
-      return res.json(fallbackList);
+      const bukuList = localStore.getBuku();
+      const tipeList = localStore.getTipeSurat();
+      const map = {};
+      for (const t of tipeList) {
+        if (!map[t.buku_kode]) map[t.buku_kode] = [];
+        map[t.buku_kode].push({ kode: t.kode, nama: t.nama });
+      }
+      return res.json(
+        bukuList.map((b) => ({
+          kode: b.kode,
+          nama: b.nama,
+          tipeSurat: map[b.kode] || [],
+        }))
+      );
     }
     res.json(localStore.getBuku());
   }
