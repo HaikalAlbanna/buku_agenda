@@ -3,20 +3,79 @@ const router = express.Router();
 const supabase = require("../supabase");
 const localStore = require("../local_store");
 
-// GET semua buku
+// Cache sederhana untuk optimasi respon cepat (< 5ms)
+let cachedBuku = null;
+let cachedBukuWithTipe = null;
+let lastCacheTime = 0;
+const CACHE_TTL_MS = 15000; // 15 detik
+
+function invalidateCache() {
+  cachedBuku = null;
+  cachedBukuWithTipe = null;
+  lastCacheTime = 0;
+}
+
+// GET semua buku (bisa dengan ?include=tipe untuk 1 kali request super cepat)
 router.get("/", async (req, res) => {
+  const { include } = req.query;
+  const now = Date.now();
+
+  // Gunakan cache jika masih valid
+  if (include === "tipe" && cachedBukuWithTipe && now - lastCacheTime < CACHE_TTL_MS) {
+    return res.json(cachedBukuWithTipe);
+  }
+  if (!include && cachedBuku && now - lastCacheTime < CACHE_TTL_MS) {
+    return res.json(cachedBuku);
+  }
+
   try {
+    if (include === "tipe") {
+      // 1 Query gabungan Buku + Tipe Surat
+      const { data, error } = await supabase
+        .from("buku")
+        .select("kode, nama, tipeSurat:tipe_surat (kode, nama)")
+        .order("kode", { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        cachedBukuWithTipe = data;
+        lastCacheTime = now;
+        return res.json(data);
+      }
+
+      // Fallback local store jika Supabase belum siap/kosong
+      const fallbackList = localStore.getBuku().map((b) => ({
+        ...b,
+        tipeSurat: localStore.getTipeSurat(b.kode) || [],
+      }));
+      cachedBukuWithTipe = fallbackList;
+      lastCacheTime = now;
+      return res.json(fallbackList);
+    }
+
+    // Default: daftar buku saja
     const { data, error } = await supabase
       .from("buku")
       .select("*")
       .order("kode", { ascending: true });
 
-    if (error || !data || data.length === 0) {
-      return res.json(localStore.getBuku());
+    if (!error && data && data.length > 0) {
+      cachedBuku = data;
+      lastCacheTime = now;
+      return res.json(data);
     }
 
-    res.json(data);
+    const fallbackBuku = localStore.getBuku();
+    cachedBuku = fallbackBuku;
+    lastCacheTime = now;
+    return res.json(fallbackBuku);
   } catch (err) {
+    if (include === "tipe") {
+      const fallbackList = localStore.getBuku().map((b) => ({
+        ...b,
+        tipeSurat: localStore.getTipeSurat(b.kode) || [],
+      }));
+      return res.json(fallbackList);
+    }
     res.json(localStore.getBuku());
   }
 });
@@ -32,6 +91,8 @@ router.post("/", async (req, res) => {
     kode: kode.toUpperCase().trim(),
     nama: nama.trim(),
   };
+
+  invalidateCache();
 
   try {
     const { data, error } = await supabase.from("buku").insert([newBuku]).select();
@@ -51,6 +112,8 @@ router.post("/", async (req, res) => {
 // DELETE buku
 router.delete("/:kode", async (req, res) => {
   const { kode } = req.params;
+  invalidateCache();
+
   try {
     const { error } = await supabase.from("buku").delete().eq("kode", kode);
     if (error) {

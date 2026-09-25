@@ -41,27 +41,17 @@ export default function Dashboard() {
 
   useEffect(() => {
     // ==============================
-    // FETCH BUKU
+    // FETCH BUKU & TIPE (Single Query Super Cepat)
     // ==============================
     axios
-      .get(`${API_BASE}/buku`)
+      .get(`${API_BASE}/buku?include=tipe`)
       .then((res) => {
-        setBuku(res.data);
-
-        // Fetch tipe surat per buku
-        res.data.forEach((b: Buku) => {
-          axios
-            .get(`${API_BASE}/tipe_surat/${b.kode}`)
-            .then((res) => {
-              setTipePerBuku((prev) => ({ ...prev, [b.kode]: res.data }));
-            })
-            .catch((err) =>
-              console.error(
-                `Gagal fetch tipe surat untuk buku ${b.kode}:`,
-                err,
-              ),
-            );
+        setBuku(res.data || []);
+        const map: Record<string, TipeSurat[]> = {};
+        (res.data || []).forEach((b: any) => {
+          map[b.kode] = b.tipeSurat || [];
         });
+        setTipePerBuku(map);
       })
       .catch((err) => console.error("Gagal fetch buku:", err));
 

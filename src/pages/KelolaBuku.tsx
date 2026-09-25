@@ -44,6 +44,7 @@ type Buku = { kode: string; nama: string; tipeSurat: TipeSurat[] };
 
 export default function KelolaBuku() {
   const [buku, setBuku] = useState<Buku[]>([]);
+  const [loading, setLoading] = useState(true);
   const [addBukuOpen, setAddBukuOpen] = useState(false);
   const [addTipeOpen, setAddTipeOpen] = useState<string | null>(null);
   const [deleteBukuKode, setDeleteBukuKode] = useState<string | null>(null);
@@ -58,26 +59,21 @@ export default function KelolaBuku() {
   const [newTipeNama, setNewTipeNama] = useState("");
 
   /** =======================
-   *  FETCH SEMUA BUKU & TIPE
+   *  FETCH SEMUA BUKU & TIPE (Single Query Super Cepat)
    * ======================= */
   const fetchBuku = async () => {
     try {
-      const res = await axios.get<Buku[]>(`${API_BASE}/buku`);
-      const bukuWithTipe = await Promise.all(
-        res.data.map(async (b) => {
-          const tipeRes = await axios.get<TipeSurat[]>(
-            `${API_BASE}/tipe_surat/${b.kode}`,
-          );
-          return { ...b, tipeSurat: tipeRes.data };
-        }),
-      );
-      setBuku(bukuWithTipe);
+      setLoading(true);
+      const res = await axios.get<Buku[]>(`${API_BASE}/buku?include=tipe`);
+      setBuku(res.data || []);
     } catch (err: any) {
       toast({
         title: "Error",
         description: err.response?.data?.error || err.message,
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -211,95 +207,102 @@ export default function KelolaBuku() {
         </Button>
       </div>
 
-      <Accordion type="multiple" className="space-y-2">
-        {buku.map((b) => (
-          <AccordionItem
-            key={b.kode}
-            value={b.kode}
-            className="border rounded-lg bg-card"
-          >
-            <AccordionTrigger className="px-4 hover:no-underline">
-              <div className="flex items-center gap-3">
-                <BookOpen className="h-4 w-4 text-primary" />
-                <span className="font-semibold">{b.kode}</span>
-                <span className="text-muted-foreground">— {b.nama}</span>
-                <span className="text-xs text-muted-foreground">
-                  ({b.tipeSurat.length} tipe)
-                </span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-4 pb-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-foreground">
-                  Kode Tipe Surat
-                </span>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setAddTipeOpen(b.kode)}
-                  >
-                    <Plus className="mr-1 h-3 w-3" />
-                    Tambah Tipe
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => setDeleteBukuKode(b.kode)}
-                  >
-                    <Trash2 className="mr-1 h-3 w-3" />
-                    Hapus Buku
-                  </Button>
-                </div>
-              </div>
-              {b.tipeSurat.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Belum ada kode tipe untuk buku ini.
-                </p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Kode</TableHead>
-                      <TableHead>Nama</TableHead>
-                      <TableHead className="w-[60px]">Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {b.tipeSurat.map((t) => (
-                      <TableRow key={t.kode}>
-                        <TableCell className="font-mono">{t.kode}</TableCell>
-                        <TableCell>{t.nama}</TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              setDeleteTipeInfo({
-                                bukuKode: b.kode,
-                                tipeKode: t.kode,
-                              })
-                            }
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
-
-      {buku.length === 0 && (
+      {loading ? (
+        <div className="py-16 flex flex-col items-center justify-center space-y-3">
+          <div className="h-7 w-7 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+          <p className="text-sm text-muted-foreground animate-pulse">
+            Memuat data buku dan kode tipe...
+          </p>
+        </div>
+      ) : buku.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             Belum ada buku. Tambahkan buku baru.
           </CardContent>
         </Card>
+      ) : (
+        <Accordion type="multiple" className="space-y-2">
+          {buku.map((b) => (
+            <AccordionItem
+              key={b.kode}
+              value={b.kode}
+              className="border rounded-lg bg-card"
+            >
+              <AccordionTrigger className="px-4 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <BookOpen className="h-4 w-4 text-primary" />
+                  <span className="font-semibold">{b.kode}</span>
+                  <span className="text-muted-foreground">— {b.nama}</span>
+                  <span className="text-xs text-muted-foreground">
+                    ({(b.tipeSurat || []).length} tipe)
+                  </span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-foreground">
+                    Kode Tipe Surat
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setAddTipeOpen(b.kode)}
+                    >
+                      <Plus className="mr-1 h-3 w-3" />
+                      Tambah Tipe
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => setDeleteBukuKode(b.kode)}
+                    >
+                      <Trash2 className="mr-1 h-3 w-3" />
+                      Hapus Buku
+                    </Button>
+                  </div>
+                </div>
+                {(!b.tipeSurat || b.tipeSurat.length === 0) ? (
+                  <p className="text-sm text-muted-foreground">
+                    Belum ada kode tipe untuk buku ini.
+                  </p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Kode</TableHead>
+                        <TableHead>Nama</TableHead>
+                        <TableHead className="w-[60px]">Aksi</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {b.tipeSurat.map((t) => (
+                        <TableRow key={t.kode}>
+                          <TableCell className="font-mono">{t.kode}</TableCell>
+                          <TableCell>{t.nama}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                setDeleteTipeInfo({
+                                  bukuKode: b.kode,
+                                  tipeKode: t.kode,
+                                })
+                              }
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       )}
 
       {/* Add Buku Dialog */}
