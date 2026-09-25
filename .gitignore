@@ -18,6 +18,9 @@ dist-ssr
 !.env.example
 *.env
 backend/.env
+backend/data/
+.data/
+local_db.json
 
 # Editor directories and files
 .vscode/*

@@ -28,6 +28,38 @@ const tipeRoutes = require("./routes/tipe_surat");
 /* ===============================
    GUNAKAN ROUTES
 ================================= */
+// Route Public Status & Health Check
+app.get("/api/status", async (req, res) => {
+  const supabase = require("./supabase");
+  let supabaseOk = false;
+  let tablesOk = false;
+  let details = {};
+
+  try {
+    const { error } = await supabase.from("users").select("id").limit(1);
+    if (!error) {
+      supabaseOk = true;
+      tablesOk = true;
+    } else if (error.code === "PGRST205") {
+      supabaseOk = true;
+      tablesOk = false;
+      details.message = "Supabase terhubung, namun tabel belum dibuat.";
+    } else {
+      details.error = error.message;
+    }
+  } catch (e) {
+    details.error = e.message;
+  }
+
+  res.json({
+    status: "ok",
+    backend: "running",
+    supabase_connected: supabaseOk,
+    supabase_tables_ready: tablesOk,
+    details,
+  });
+});
+
 // Route Public Autentikasi
 app.use("/api/auth", authRoutes);
 

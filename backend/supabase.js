@@ -1,4 +1,5 @@
 const { createClient } = require("@supabase/supabase-js");
+const ws = require("ws");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
@@ -14,7 +15,11 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 const supabase = createClient(
   SUPABASE_URL || "https://placeholder.supabase.co",
-  SUPABASE_KEY || "placeholder-key"
+  SUPABASE_KEY || "placeholder-key",
+  {
+    realtime: { transport: ws },
+    auth: { persistSession: false },
+  }
 );
 
 module.exports = supabase;

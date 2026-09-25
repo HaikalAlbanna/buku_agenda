@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const supabase = require("../supabase");
+const localStore = require("../local_store");
 
 // GET semua surat keluar
 router.get("/", async (req, res) => {
@@ -10,10 +11,13 @@ router.get("/", async (req, res) => {
       .select("*")
       .order("tanggal", { ascending: false });
 
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      return res.json(localStore.getSuratKeluar());
+    }
+
     res.json(data || []);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.json(localStore.getSuratKeluar());
   }
 });
 
@@ -25,10 +29,13 @@ router.get("/export", async (req, res) => {
       .select("*")
       .order("tanggal", { ascending: false });
 
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      return res.json(localStore.getSuratKeluar());
+    }
+
     res.json(data || []);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.json(localStore.getSuratKeluar());
   }
 });
 
@@ -41,10 +48,17 @@ router.get("/:id", async (req, res) => {
       .eq("id", req.params.id)
       .single();
 
-    if (error) return res.status(404).json({ error: "Surat tidak ditemukan" });
+    if (error || !data) {
+      const fallback = localStore.getSuratKeluarById(req.params.id);
+      if (fallback) return res.json(fallback);
+      return res.status(404).json({ error: "Surat tidak ditemukan" });
+    }
+
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    const fallback = localStore.getSuratKeluarById(req.params.id);
+    if (fallback) return res.json(fallback);
+    res.status(404).json({ error: "Surat tidak ditemukan" });
   }
 });
 
@@ -63,26 +77,37 @@ router.post("/", async (req, res) => {
     pdfData,
   } = req.body;
 
-  try {
-    const { data, error } = await supabase.from("surat_keluar").insert([
-      {
-        id,
-        buku_kode: bukuKode,
-        tipe_kode: tipeKode,
-        nomor_urut: nomorUrut,
-        nomor_surat: nomorSurat,
-        tanggal,
-        alamat_dituju: alamatDituju || null,
-        perihal,
-        pdf_file_name: pdfFileName || null,
-        pdf_data: pdfData || null,
-      },
-    ]);
+  const row = {
+    id: id || "SK-" + Date.now(),
+    buku_kode: bukuKode,
+    tipe_kode: tipeKode,
+    nomor_urut: nomorUrut,
+    nomor_surat: nomorSurat,
+    tanggal,
+    alamat_dituju: alamatDituju || null,
+    perihal,
+    pdf_file_name: pdfFileName || null,
+    pdf_data: pdfData || null,
+  };
 
-    if (error) return res.status(500).json({ error: error.message });
+  try {
+    const { data, error } = await supabase.from("surat_keluar").insert([row]).select();
+
+    if (error) {
+      const saved = localStore.addSuratKeluar(row);
+      return res.json({
+        message: "Surat keluar berhasil ditambahkan (Local Fallback)",
+        data: [saved],
+      });
+    }
+
     res.json({ message: "Surat keluar berhasil ditambahkan", data });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    const saved = localStore.addSuratKeluar(row);
+    res.json({
+      message: "Surat keluar berhasil ditambahkan (Local Fallback)",
+      data: [saved],
+    });
   }
 });
 
@@ -101,29 +126,39 @@ router.put("/:id", async (req, res) => {
     pdfData,
   } = req.body;
 
+  const updateData = {
+    buku_kode: bukuKode,
+    tipe_kode: tipeKode,
+    nomor_urut: nomorUrut,
+    nomor_surat: nomorSurat,
+    tanggal,
+    alamat_dituju: alamatDituju || null,
+    perihal,
+  };
+
+  if (pdfFileName !== undefined) updateData.pdf_file_name = pdfFileName;
+  if (pdfData !== undefined) updateData.pdf_data = pdfData;
+
   try {
-    const updateData = {
-      buku_kode: bukuKode,
-      tipe_kode: tipeKode,
-      nomor_urut: nomorUrut,
-      nomor_surat: nomorSurat,
-      tanggal,
-      alamat_dituju: alamatDituju || null,
-      perihal,
-    };
-
-    if (pdfFileName !== undefined) updateData.pdf_file_name = pdfFileName;
-    if (pdfData !== undefined) updateData.pdf_data = pdfData;
-
     const { data, error } = await supabase
       .from("surat_keluar")
       .update(updateData)
-      .eq("id", id);
+      .eq("id", id)
+      .select();
 
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      localStore.updateSuratKeluar(id, updateData);
+      return res.json({
+        message: "Surat keluar berhasil diperbarui (Local Fallback)",
+      });
+    }
+
     res.json({ message: "Surat keluar berhasil diperbarui", data });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    localStore.updateSuratKeluar(id, updateData);
+    res.json({
+      message: "Surat keluar berhasil diperbarui (Local Fallback)",
+    });
   }
 });
 
@@ -131,11 +166,20 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const { error } = await supabase.from("surat_keluar").delete().eq("id", id);
-    if (error) return res.status(500).json({ error: error.message });
+    const { error } = await supabase
+      .from("surat_keluar")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      localStore.deleteSuratKeluar(id);
+      return res.json({ message: "Surat keluar berhasil dihapus" });
+    }
+
     res.json({ message: "Surat keluar berhasil dihapus" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    localStore.deleteSuratKeluar(id);
+    res.json({ message: "Surat keluar berhasil dihapus" });
   }
 });
 

@@ -1,0 +1,4 @@
+{
+  "watch": ["routes", "middleware", "server.js", "supabase.js", "init_db.js"],
+  "ignore": ["data/*", "local_db.json", "*.json", ".env"]
+}

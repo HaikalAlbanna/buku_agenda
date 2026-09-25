@@ -1,6 +1,8 @@
 -- ========================================================
 -- SKRIP LENGKAP SUPABASE UNTUK BUKU AGENDA
--- Buka Dashboard Supabase > SQL Editor > Tempel skrip ini > Klik "Run"
+-- Buka Dashboard Supabase:
+-- https://supabase.com/dashboard/project/trdtkjupfevddwfpbmlc/sql/new
+-- Tempel semua skrip di bawah ini > Klik "Run" (Ctrl + Enter)
 -- ========================================================
 
 -- 1. Buat Tabel Users (Autentikasi Admin)
@@ -34,7 +36,8 @@ CREATE TABLE IF NOT EXISTS masuk (
   tanggal DATE NOT NULL,
   surat_dari VARCHAR(150) NOT NULL,
   perihal VARCHAR(255) NOT NULL,
-  arsip_pdf TEXT NULL
+  arsip_pdf TEXT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 5. Buat Tabel Surat Keluar
@@ -49,25 +52,33 @@ CREATE TABLE IF NOT EXISTS surat_keluar (
   perihal VARCHAR(255) NOT NULL,
   pdf_file_name VARCHAR(255) NULL,
   pdf_data TEXT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
   FOREIGN KEY (buku_kode, tipe_kode) REFERENCES tipe_surat(buku_kode, kode) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
-CREATE INDEX IF NOT EXISTS idx_surat_keluar_tanggal ON surat_keluar (tanggal);
+-- 6. Buat Indexes untuk performa pencarian & pengurutan
+CREATE INDEX IF NOT EXISTS idx_surat_keluar_tanggal ON surat_keluar (tanggal DESC);
+CREATE INDEX IF NOT EXISTS idx_masuk_tanggal ON masuk (tanggal DESC);
 
--- 6. Nonaktifkan RLS agar Publishable Key dapat melakukan SELECT, INSERT, UPDATE, DELETE penuh
+-- 7. Nonaktifkan Row Level Security (RLS) agar API Key Publishable / Anon bisa CRUD
 ALTER TABLE users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE buku DISABLE ROW LEVEL SECURITY;
 ALTER TABLE tipe_surat DISABLE ROW LEVEL SECURITY;
 ALTER TABLE masuk DISABLE ROW LEVEL SECURITY;
 ALTER TABLE surat_keluar DISABLE ROW LEVEL SECURITY;
 
--- 7. Seed Akun Default Admin (Username: admin | Password: admin123)
--- Hash bcrypt untuk 'admin123'
-INSERT INTO users (username, nama, password, role)
-VALUES ('admin', 'Administrator', '$2a$10$wT5f2rN98c8vjWdD34h7tOQh2U8aD/qZ9V6xK2M9N8w1h6vW2X5G6', 'admin')
-ON CONFLICT (username) DO NOTHING;
+-- 8. Berikan Hak Akses Penuh (Grant Permissions)
+GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO postgres, anon, authenticated, service_role;
 
--- 8. Seed Master Data Buku
+-- 9. Seed Akun Default Admin (Username: admin | Password: admin123)
+-- Hash bcrypt valid untuk 'admin123'
+INSERT INTO users (username, nama, password, role)
+VALUES ('admin', 'Administrator', '$2b$10$gfZ8CtNDwoj7f.gxajTBTeY3Tkge68v3nRkyyD8B9NtNSlozWMxuS', 'admin')
+ON CONFLICT (username) DO UPDATE 
+SET password = EXCLUDED.password, nama = EXCLUDED.nama;
+
+-- 10. Seed Master Data Buku
 INSERT INTO buku (kode, nama) VALUES
   ('PR', 'Perencanaan'),
   ('KU', 'Keuangan'),
@@ -79,7 +90,7 @@ INSERT INTO buku (kode, nama) VALUES
   ('PK', 'Pemasyarakatan')
 ON CONFLICT (kode) DO NOTHING;
 
--- 9. Seed Master Data Tipe Surat
+-- 11. Seed Master Data Tipe Surat
 INSERT INTO tipe_surat (buku_kode, kode, nama) VALUES
   ('PR', '01.01', 'Kebijakan Perencanaan'),
   ('PR', '01.02', 'Program dan Anggaran'),

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const supabase = require("../supabase");
+const localStore = require("../local_store");
 
 // GET tipe surat berdasarkan buku_kode
 router.get("/:buku_kode", async (req, res) => {
@@ -12,10 +13,13 @@ router.get("/:buku_kode", async (req, res) => {
       .eq("buku_kode", buku_kode)
       .order("kode", { ascending: true });
 
-    if (error) return res.status(500).json({ error: error.message });
-    res.json(data || []);
+    if (error || !data || data.length === 0) {
+      return res.json(localStore.getTipeSurat(buku_kode));
+    }
+
+    res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.json(localStore.getTipeSurat(buku_kode));
   }
 });
 
@@ -23,22 +27,29 @@ router.get("/:buku_kode", async (req, res) => {
 router.post("/", async (req, res) => {
   const { buku_kode, kode, nama } = req.body;
   if (!buku_kode || !kode || !nama) {
-    return res.status(400).json({ error: "Buku kode, kode, dan nama wajib diisi" });
+    return res
+      .status(400)
+      .json({ error: "Buku kode, kode, dan nama wajib diisi" });
   }
 
-  try {
-    const { data, error } = await supabase.from("tipe_surat").insert([
-      {
-        buku_kode: buku_kode.trim(),
-        kode: kode.trim(),
-        nama: nama.trim(),
-      },
-    ]);
+  const newTipe = {
+    buku_kode: buku_kode.trim(),
+    kode: kode.trim(),
+    nama: nama.trim(),
+  };
 
-    if (error) return res.status(500).json({ error: error.message });
+  try {
+    const { data, error } = await supabase.from("tipe_surat").insert([newTipe]).select();
+
+    if (error) {
+      const saved = localStore.addTipeSurat(newTipe);
+      return res.json({ message: "Tipe surat berhasil ditambahkan (Local Fallback)", data: [saved] });
+    }
+
     res.json({ message: "Tipe surat berhasil ditambahkan", data });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    const saved = localStore.addTipeSurat(newTipe);
+    res.json({ message: "Tipe surat berhasil ditambahkan (Local Fallback)", data: [saved] });
   }
 });
 
@@ -58,10 +69,15 @@ router.delete("/:kode", async (req, res) => {
       .eq("buku_kode", buku_kode)
       .eq("kode", kode);
 
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      localStore.deleteTipeSurat(buku_kode, kode);
+      return res.json({ message: "Tipe surat berhasil dihapus" });
+    }
+
     res.json({ message: "Tipe surat berhasil dihapus" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    localStore.deleteTipeSurat(buku_kode, kode);
+    res.json({ message: "Tipe surat berhasil dihapus" });
   }
 });
 

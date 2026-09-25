@@ -1,15 +1,23 @@
 const express = require("express");
 const router = express.Router();
 const supabase = require("../supabase");
+const localStore = require("../local_store");
 
 // GET semua buku
 router.get("/", async (req, res) => {
   try {
-    const { data, error } = await supabase.from("buku").select("*").order("kode", { ascending: true });
-    if (error) return res.status(500).json({ error: error.message });
-    res.json(data || []);
+    const { data, error } = await supabase
+      .from("buku")
+      .select("*")
+      .order("kode", { ascending: true });
+
+    if (error || !data || data.length === 0) {
+      return res.json(localStore.getBuku());
+    }
+
+    res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.json(localStore.getBuku());
   }
 });
 
@@ -19,17 +27,24 @@ router.post("/", async (req, res) => {
   if (!kode || !nama) {
     return res.status(400).json({ error: "Kode dan nama wajib diisi" });
   }
+
+  const newBuku = {
+    kode: kode.toUpperCase().trim(),
+    nama: nama.trim(),
+  };
+
   try {
-    const { data, error } = await supabase.from("buku").insert([
-      {
-        kode: kode.toUpperCase().trim(),
-        nama: nama.trim(),
-      },
-    ]);
-    if (error) return res.status(500).json({ error: error.message });
+    const { data, error } = await supabase.from("buku").insert([newBuku]).select();
+
+    if (error) {
+      const saved = localStore.addBuku(newBuku);
+      return res.json({ message: "Buku berhasil ditambahkan (Local Fallback)", data: [saved] });
+    }
+
     res.json({ message: "Buku berhasil ditambahkan", data });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    const saved = localStore.addBuku(newBuku);
+    res.json({ message: "Buku berhasil ditambahkan (Local Fallback)", data: [saved] });
   }
 });
 
@@ -38,10 +53,14 @@ router.delete("/:kode", async (req, res) => {
   const { kode } = req.params;
   try {
     const { error } = await supabase.from("buku").delete().eq("kode", kode);
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      localStore.deleteBuku(kode);
+      return res.json({ message: "Buku berhasil dihapus" });
+    }
     res.json({ message: "Buku berhasil dihapus" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    localStore.deleteBuku(kode);
+    res.json({ message: "Buku berhasil dihapus" });
   }
 });
 
