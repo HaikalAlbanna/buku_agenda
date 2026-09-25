@@ -106,26 +106,8 @@ INSERT INTO buku (kode, nama) VALUES
 ON CONFLICT (kode) DO UPDATE 
 SET nama = EXCLUDED.nama;
 
--- 11. Seed Master Data Tipe Surat
-INSERT INTO tipe_surat (buku_kode, kode, nama) VALUES
-  ('PR', '01.01', 'Kebijakan Perencanaan'),
-  ('PR', '01.02', 'Program dan Anggaran'),
-  ('KU', '02.01', 'Kebijakan Keuangan'),
-  ('KU', '02.02', 'Perbendaharaan'),
-  ('OT', '03.01', 'Kelembagaan'),
-  ('OT', '03.02', 'Ketatalaksanaan'),
-  ('SA', '04.01', 'Formasi dan Pengadaan'),
-  ('SA', '04.02', 'Mutasi dan Promosi'),
-  ('PB', '05.01', 'Perencanaan Kebutuhan'),
-  ('PB', '05.02', 'Pengadaan BMN'),
-  ('UM', '06.01', 'Tata Usaha'),
-  ('UM', '06.02', 'Rumah Tangga'),
-  ('PW', '07.01', 'Kebijakan Pengawasan'),
-  ('PW', '07.02', 'Audit Internal'),
-  ('PK', '08.01', 'Pembinaan Narapidana'),
-  ('PK', '08.02', 'Keamanan dan Ketertiban')
-ON CONFLICT (buku_kode, kode) DO UPDATE 
-SET nama = EXCLUDED.nama;
+-- 11. Kosongkan Tabel Tipe Surat (Dikelola mandiri oleh pengguna)
+DELETE FROM tipe_surat;
 
 -- 12. Tampilkan Hasil Data Buku
 SELECT * FROM buku ORDER BY kode ASC;

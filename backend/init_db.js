@@ -41,16 +41,7 @@ async function initDb() {
       console.log(`✅ ${defaultBuku.length} Master Buku berhasil di-seed di Supabase.`);
     }
 
-    // 3. Cek & Seed Tipe Surat
-    const { data: tipe, error: tipeErr } = await supabase
-      .from("tipe_surat")
-      .select("kode");
-
-    if (!tipeErr && (!tipe || tipe.length === 0)) {
-      const defaultTipe = localStore.getTipeSurat();
-      await supabase.from("tipe_surat").insert(defaultTipe);
-      console.log(`✅ ${defaultTipe.length} Master Tipe Surat berhasil di-seed di Supabase.`);
-    }
+    // Master tipe_surat dikelola secara manual oleh pengguna (tidak di-seed otomatis)
   } catch (err) {
     console.error("❌ Catatan inisialisasi Supabase:", err.message);
   }
