@@ -45,21 +45,26 @@ router.get("/", async (req, res) => {
             .order("kode", { ascending: true }),
         ]);
 
+        // Debug logging
+        console.log("[buku.js] resBuku error:", resBuku.error, "data length:", resBuku.data?.length);
+        console.log("[buku.js] resTipe error:", resTipe.error, "data length:", resTipe.data?.length);
+
         if (!resBuku.error && resBuku.data && resBuku.data.length > 0) {
           dbBuku = resBuku.data;
         }
-        if (!resTipe.error && resTipe.data && resTipe.data.length > 0) {
+        if (!resTipe.error && resTipe.data) {
           dbTipe = resTipe.data;
         }
       } catch (e) {
+        console.error("[buku.js] Supabase query error:", e.message);
         // Abaikan error Supabase, fallback ke localStore
       }
 
       // Sumber buku: Supabase jika ada, jika tidak gunakan localStore
       const bukuList = dbBuku && dbBuku.length > 0 ? dbBuku : localStore.getBuku();
 
-      // Sumber tipe_surat: Supabase jika ada, jika tidak gunakan localStore (215 data lengkap)
-      const tipeList = dbTipe && dbTipe.length > 0 ? dbTipe : localStore.getTipeSurat();
+      // Sumber tipe_surat: Supabase jika berhasil query, jika tidak gunakan localStore
+      const tipeList = dbTipe !== null ? dbTipe : localStore.getTipeSurat();
 
       // Kelompokkan tipe surat berdasarkan buku_kode
       const map = {};
