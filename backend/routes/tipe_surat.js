@@ -1,11 +1,28 @@
 const express = require("express");
 const router = express.Router();
-const dataCache = require("../data_cache");
+const supabase = require("../supabase");
+const localStore = require("../local_store");
 
 // GET tipe surat berdasarkan buku_kode
-router.get("/:buku_kode", (req, res) => {
+router.get("/:buku_kode", async (req, res) => {
   const { buku_kode } = req.params;
-  res.json(dataCache.getTipeSurat(buku_kode));
+  const cleanKode = String(buku_kode).trim().toUpperCase();
+
+  try {
+    const { data, error } = await supabase
+      .from("tipe_surat")
+      .select("*")
+      .eq("buku_kode", cleanKode)
+      .order("kode", { ascending: true });
+
+    if (!error && data && data.length > 0) {
+      return res.json(data);
+    }
+
+    return res.json(localStore.getTipeSurat(cleanKode));
+  } catch (err) {
+    return res.json(localStore.getTipeSurat(cleanKode));
+  }
 });
 
 // POST tambah tipe surat baru
@@ -23,8 +40,30 @@ router.post("/", async (req, res) => {
     nama: nama.trim(),
   };
 
-  const saved = await dataCache.addTipeSurat(newTipe);
-  res.json({ message: "Tipe surat berhasil ditambahkan", data: [saved] });
+  try {
+    const { data, error } = await supabase
+      .from("tipe_surat")
+      .upsert([newTipe])
+      .select();
+
+    if (error) {
+      console.error("[tipe_surat] Supabase upsert error:", error);
+      const saved = localStore.addTipeSurat(newTipe);
+      return res.json({
+        message: "Tipe surat berhasil ditambahkan (Local Fallback)",
+        data: [saved],
+      });
+    }
+
+    localStore.addTipeSurat(newTipe);
+    return res.json({ message: "Tipe surat berhasil ditambahkan", data });
+  } catch (err) {
+    const saved = localStore.addTipeSurat(newTipe);
+    return res.json({
+      message: "Tipe surat berhasil ditambahkan (Local Fallback)",
+      data: [saved],
+    });
+  }
 });
 
 // DELETE tipe surat
@@ -36,8 +75,23 @@ router.delete("/:kode", async (req, res) => {
     return res.status(400).json({ error: "Query buku_kode wajib diisi" });
   }
 
-  await dataCache.deleteTipeSurat(buku_kode, kode);
-  res.json({ message: "Tipe surat berhasil dihapus" });
+  try {
+    const { error } = await supabase
+      .from("tipe_surat")
+      .delete()
+      .eq("buku_kode", buku_kode)
+      .eq("kode", kode);
+
+    localStore.deleteTipeSurat(buku_kode, kode);
+    if (error) {
+      return res.json({ message: "Tipe surat berhasil dihapus (Local Fallback)" });
+    }
+
+    return res.json({ message: "Tipe surat berhasil dihapus" });
+  } catch (err) {
+    localStore.deleteTipeSurat(buku_kode, kode);
+    return res.json({ message: "Tipe surat berhasil dihapus" });
+  }
 });
 
 module.exports = router;
