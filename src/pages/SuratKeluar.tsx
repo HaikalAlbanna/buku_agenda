@@ -190,14 +190,27 @@ export default function SuratKeluar() {
   /* ================= NOMOR OTOMATIS ================= */
 
   function handleAutoNumber() {
-    const targetList = formBuku
-      ? data.filter((s) => s.buku_kode === formBuku)
-      : data;
+    if (!formBuku || !formTipe) {
+      toast({
+        title: "Peringatan",
+        description: "Pilih Buku dan Kode Tipe terlebih dahulu",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const targetList = data.filter(
+      (s) => s.buku_kode === formBuku && s.tipe_kode === formTipe
+    );
+    const listToUse =
+      targetList.length > 0
+        ? targetList
+        : data.filter((s) => s.buku_kode === formBuku);
 
     let maxNum = 0;
     let targetPad = 4;
 
-    for (const s of targetList) {
+    for (const s of listToUse) {
       if (s.nomor_urut) {
         const cleanDigits = s.nomor_urut.replace(/\D/g, "");
         if (cleanDigits) {
@@ -216,7 +229,7 @@ export default function SuratKeluar() {
     setFormNomor(autoStr);
     toast({
       title: "Nomor Urut Otomatis",
-      description: `Nomor urut berikutnya: ${autoStr}${formBuku ? ` (Buku ${formBuku})` : ""}`,
+      description: `Nomor urut berikutnya: ${autoStr} (Buku ${formBuku}, Tipe ${formTipe})`,
     });
   }
 
@@ -474,11 +487,16 @@ export default function SuratKeluar() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-6 px-2 text-[11px] font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300 border-amber-200"
+                    disabled={!formBuku || !formTipe}
+                    className="h-6 px-2 text-[11px] font-medium"
                     onClick={handleAutoNumber}
-                    title="Deteksi nomor otomatis terakhir"
+                    title={
+                      !formBuku || !formTipe
+                        ? "Pilih Buku dan Kode Tipe terlebih dahulu"
+                        : "Deteksi nomor urut otomatis"
+                    }
                   >
-                    <Sparkles className="mr-1 h-3 w-3 text-amber-500" />
+                    <Sparkles className="mr-1 h-3 w-3" />
                     Otomatis
                   </Button>
                 </div>
