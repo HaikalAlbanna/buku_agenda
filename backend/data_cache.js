@@ -81,20 +81,26 @@ function getBuku() {
 function getBukuWithTipe() {
   const map = {};
   for (const t of cache.tipe_surat) {
-    const key = t.buku_kode;
+    const key = String(t.buku_kode || "").trim().toUpperCase();
     if (!map[key]) map[key] = [];
     map[key].push({ kode: t.kode, nama: t.nama });
   }
-  return cache.buku.map((b) => ({
-    kode: b.kode,
-    nama: b.nama,
-    tipeSurat: map[b.kode] || [],
-  }));
+  return cache.buku.map((b) => {
+    const bKey = String(b.kode || "").trim().toUpperCase();
+    return {
+      kode: b.kode,
+      nama: b.nama,
+      tipeSurat: map[bKey] || [],
+    };
+  });
 }
 
 function getTipeSurat(buku_kode) {
   if (buku_kode) {
-    return cache.tipe_surat.filter((t) => t.buku_kode === buku_kode);
+    const clean = String(buku_kode).trim().toUpperCase();
+    return cache.tipe_surat.filter(
+      (t) => String(t.buku_kode || "").trim().toUpperCase() === clean
+    );
   }
   return cache.tipe_surat;
 }

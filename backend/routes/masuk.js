@@ -1,25 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const supabase = require("../supabase");
-const localStore = require("../local_store");
+const dataCache = require("../data_cache");
 
 // GET semua surat masuk
-router.get("/", async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .from("masuk")
-      .select("*")
-      .order("id", { ascending: false });
-
-    if (error) {
-      // Jika tabel belum ada atau error koneksi, gunakan local store
-      return res.json(localStore.getMasuk());
-    }
-
-    res.json(data || []);
-  } catch (err) {
-    res.json(localStore.getMasuk());
-  }
+router.get("/", (req, res) => {
+  res.json(dataCache.getMasuk());
 });
 
 // POST tambah surat masuk baru
@@ -37,29 +22,8 @@ router.post("/", async (req, res) => {
     arsip_pdf: arsip_pdf || null,
   };
 
-  try {
-    const { data, error } = await supabase
-      .from("masuk")
-      .insert([payload])
-      .select();
-
-    if (error) {
-      // Fallback simpan ke local_store
-      const saved = localStore.addMasuk(payload);
-      return res.json({
-        message: "Surat masuk berhasil ditambahkan (Local Fallback)",
-        data: [saved],
-      });
-    }
-
-    res.json({ message: "Surat masuk berhasil ditambahkan", data });
-  } catch (err) {
-    const saved = localStore.addMasuk(payload);
-    res.json({
-      message: "Surat masuk berhasil ditambahkan (Local Fallback)",
-      data: [saved],
-    });
-  }
+  const saved = await dataCache.addMasuk(payload);
+  res.json({ message: "Surat masuk berhasil ditambahkan", data: [saved] });
 });
 
 // PUT update surat masuk
@@ -77,43 +41,15 @@ router.put("/:id", async (req, res) => {
     updateData.arsip_pdf = arsip_pdf;
   }
 
-  try {
-    const { data, error } = await supabase
-      .from("masuk")
-      .update(updateData)
-      .eq("id", id)
-      .select();
-
-    if (error) {
-      localStore.updateMasuk(id, updateData);
-      return res.json({
-        message: "Surat masuk berhasil diperbarui (Local Fallback)",
-      });
-    }
-
-    res.json({ message: "Surat masuk berhasil diperbarui", data });
-  } catch (err) {
-    localStore.updateMasuk(id, updateData);
-    res.json({
-      message: "Surat masuk berhasil diperbarui (Local Fallback)",
-    });
-  }
+  const updated = await dataCache.updateMasuk(id, updateData);
+  res.json({ message: "Surat masuk berhasil diperbarui", data: updated });
 });
 
 // DELETE surat masuk
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  try {
-    const { error } = await supabase.from("masuk").delete().eq("id", id);
-    if (error) {
-      localStore.deleteMasuk(id);
-      return res.json({ message: "Surat masuk berhasil dihapus" });
-    }
-    res.json({ message: "Surat masuk berhasil dihapus" });
-  } catch (err) {
-    localStore.deleteMasuk(id);
-    res.json({ message: "Surat masuk berhasil dihapus" });
-  }
+  await dataCache.deleteMasuk(id);
+  res.json({ message: "Surat masuk berhasil dihapus" });
 });
 
 module.exports = router;

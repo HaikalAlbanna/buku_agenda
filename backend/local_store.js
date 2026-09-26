@@ -8,6 +8,11 @@ const dataDir =
     : path.resolve(__dirname, "..", ".data");
 const dbFilePath = path.join(dataDir, "local_db.json");
 
+let SEED_TIPE = [];
+try {
+  SEED_TIPE = require("./data_tipe_surat_seed.json");
+} catch (e) {}
+
 const SEED_DATA = {
   buku: [
     { kode: "PR", nama: "Perencanaan" },
@@ -19,7 +24,7 @@ const SEED_DATA = {
     { kode: "PW", nama: "Pengawasan" },
     { kode: "PK", nama: "Pemasyarakatan" },
   ],
-  tipe_surat: [],
+  tipe_surat: SEED_TIPE,
   masuk: [],
   surat_keluar: [],
 };
@@ -84,9 +89,10 @@ module.exports = {
   // TIPE SURAT
   getTipeSurat: (buku_kode) => {
     const db = readDb();
-    const list = db.tipe_surat || SEED_DATA.tipe_surat;
+    const list = (db.tipe_surat && db.tipe_surat.length > 0) ? db.tipe_surat : SEED_DATA.tipe_surat;
     if (buku_kode) {
-      return list.filter((t) => t.buku_kode === buku_kode);
+      const clean = String(buku_kode).trim().toUpperCase();
+      return list.filter((t) => String(t.buku_kode).trim().toUpperCase() === clean);
     }
     return list;
   },

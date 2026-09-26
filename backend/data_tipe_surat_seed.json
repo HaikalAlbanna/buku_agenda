@@ -1,0 +1,1077 @@
+[
+  {
+    "buku_kode": "KU",
+    "kode": "01.01",
+    "nama": "Pedoman, Petunjuk, dan Administrasi Pelaksanaan Anggaran"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "01.01",
+    "nama": "Inventarisasi Jabatan/Peta Jabatan"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "01.01",
+    "nama": "Registrasi Tahanan dan Anak"
+  },
+  {
+    "buku_kode": "OT",
+    "kode": "01.01",
+    "nama": "Organisasi dan Tata Kerja Kementerian"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "01.01",
+    "nama": "Kebijakan Pengawasan"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "01.01",
+    "nama": "Usulan Rencana Kebutuhan BMN"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "01.01",
+    "nama": "Rencana Strategis"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "01.01",
+    "nama": "Persuratan"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "01.02",
+    "nama": "Ucapan Terima Kasih/Ucapan Selamat"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "01.02",
+    "nama": "Daftar Isian Pelaksanaan Anggaran (DIPA)"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "01.02",
+    "nama": "Rencana Kebutuhan BMN Kementerian"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "01.02",
+    "nama": "Perjanjian Kinerja"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "01.02",
+    "nama": "Trilateral Meeting"
+  },
+  {
+    "buku_kode": "OT",
+    "kode": "01.02",
+    "nama": "Organisasi dan Tata Kerja Kantor Wilayah"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "01.02",
+    "nama": "Registrasi Narapidana dan Anak Binaan"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "01.02",
+    "nama": "Evaluasi Jabatan"
+  },
+  {
+    "buku_kode": "OT",
+    "kode": "01.03",
+    "nama": "Organisasi dan Tata Kerja Unit Pelaksana Teknis (UPT)"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "01.03",
+    "nama": "Hasil Analisis Kebutuhan BMN"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "01.03",
+    "nama": "Registrasi Klien Pemasyarakatan"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "01.03",
+    "nama": "Penerimaan Negara Bukan Pajak (PNBP)"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "01.03",
+    "nama": "Usulan Formasi"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "01.03",
+    "nama": "Program Kerja Pengawasan Tahunan (PKPT)"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "01.03",
+    "nama": "Rencana Kerja"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "01.04",
+    "nama": "Rencana Kebutuhan Aset Berwujud"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "01.04",
+    "nama": "Registrasi Titipan"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "01.04",
+    "nama": "Alokasi Formasi"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "01.04",
+    "nama": "Rencana Kerja dan Anggaran"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "01.04",
+    "nama": "Program Kerja Administrasi Umum (PKAU)"
+  },
+  {
+    "buku_kode": "OT",
+    "kode": "01.04",
+    "nama": "Evaluasi Kelembagaan"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "01.05",
+    "nama": "Rapat Koordinasi Pengawasan (RAKORWAS)"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "01.05",
+    "nama": "Rencana Kebutuhan Aset Tak Berwujud"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "01.05",
+    "nama": "Administrasi Pelayanan Tahanan di Luar Rutan"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "01.06",
+    "nama": "Ikhtisar Hasil Pengawasan"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "01.06",
+    "nama": "Peminjaman/Bon Narapidana dan Anak Binaan"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "02.01",
+    "nama": "Admisi Orientasi"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "02.01",
+    "nama": "Pedoman dan Petunjuk Administrasi Keuangan"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "02.01",
+    "nama": "Unit Utama"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "02.01",
+    "nama": "Audit Kinerja & Informasi, Reviu dan Evaluasi"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "02.01",
+    "nama": "Proses Penerimaan SDM Aparatur"
+  },
+  {
+    "buku_kode": "OT",
+    "kode": "02.01",
+    "nama": "Standarisasi Sarana Kerja"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "02.01",
+    "nama": "Pemindahan Arsip"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "02.01",
+    "nama": "Pengelolaan Pengadaan Barang/Jasa"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "02.02",
+    "nama": "Audit Tujuan Tertentu/Khusus"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "02.02",
+    "nama": "Pengelolaan Layanan Pengadaan Secara Elektronik dan Data Informasi Pengadaan Barang/Jasa"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "02.02",
+    "nama": "Penatausahaan Hibah"
+  },
+  {
+    "buku_kode": "OT",
+    "kode": "02.02",
+    "nama": "Sistem, Prosedur dan Metode Kerja"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "02.02",
+    "nama": "Kantor Wilayah"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "02.02",
+    "nama": "Pemusnahan Arsip"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "02.02",
+    "nama": "Asesmen dan Klasifikasi"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "02.02",
+    "nama": "Berkas Lamaran Yang Tidak Diterima"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "02.03",
+    "nama": "Penyerahan"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "02.03",
+    "nama": "Pejabat Perbendaharaan Negara"
+  },
+  {
+    "buku_kode": "OT",
+    "kode": "02.03",
+    "nama": "Analisa dan Uraian Jabatan"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "02.03",
+    "nama": "Surat Keputusan Calon Pegawai Negeri Sipil (CPNS)/Pegawai Negeri Sipil (PNS) Kolektif"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "02.03",
+    "nama": "Pemantauan/Monitoring"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "02.03",
+    "nama": "Pembinaan, Bimbingan, Pendampingan, dan Konsultasi Teknis Pengadaan Barang/Jasa"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "02.04",
+    "nama": "Penerimaan SDM Aparatur dari Politeknik Ilmu Pemasyarakatan dan Politeknik Imigrasi"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "02.04",
+    "nama": "Pengawasan Lainnya, Pendampingan, Sosialisasi, Perjanjian Kerja Sama"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "02.04",
+    "nama": "Tindak Lanjut Hasil Pemeriksaan"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "02.04",
+    "nama": "Penyelesaian Kerugian Negara"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "02.04",
+    "nama": "Pembinaan Kearsipan"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "02.05",
+    "nama": "Laporan Pengadaan Barang/Jasa"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "02.05",
+    "nama": "Penatausahaan Rekening Pemerintah"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "02.05",
+    "nama": "Pengawasan Kearsipan"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "02.05",
+    "nama": "Ujian Dinas dan Ujian Penyesuaian Ijazah"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "02.06",
+    "nama": "Telaahan Permasalahan Pengadaan Barang/Jasa"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "02.06",
+    "nama": "Monitoring dan Evaluasi"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "02.07",
+    "nama": "Unit Kerja Pengadaan Barang dan Jasa (UKPBJ)"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "02.08",
+    "nama": "Pendistribusian Barang Milik Negara"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "03.01",
+    "nama": "Mutasi Tahanan dan Anak"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "03.01",
+    "nama": "Laporan Hasil Audit Kinerja (LHA/LHP), Informasi Data Pendukung Pemeriksaan Dalam Negeri dan Luar Negeri"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "03.01",
+    "nama": "Penggunaan Ruang dan Peralatan Kantor"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "03.01",
+    "nama": "Pengangkatan CPNS"
+  },
+  {
+    "buku_kode": "OT",
+    "kode": "03.01",
+    "nama": "Penilaian Mandiri Pelaksanaan Reformasi Birokrasi (PMPRB)"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "03.01",
+    "nama": "Dokumen Pertanggungjawaban Belanja"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "03.01",
+    "nama": "Penggunaan Barang Milik Negara (BMN)"
+  },
+  {
+    "buku_kode": "OT",
+    "kode": "03.02",
+    "nama": "Zona Integritas (ZI)"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "03.02",
+    "nama": "Pengangkatan PNS"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "03.02",
+    "nama": "Laporan Hasil Audit Tujuan Tertentu (Audit Khusus)"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "03.02",
+    "nama": "Buku Kas Umum dan Buku Pembantu"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "03.02",
+    "nama": "Mutasi Narapidana dan Anak Binaan"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "03.02",
+    "nama": "Pemanfaatan Barang Milik Negara"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "03.02",
+    "nama": "Penggunaan dan Penghunian Rumah Negara"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "03.03",
+    "nama": "Pemantauan/Monitoring BPK RI, BPKP RI, ORI, Inspektorat Jenderal"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "03.03",
+    "nama": "Laporan Pertanggungjawaban (LPJ) Bendahara Pengeluaran"
+  },
+  {
+    "buku_kode": "OT",
+    "kode": "03.03",
+    "nama": "Evaluasi Reformasi Birokrasi"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "03.03",
+    "nama": "Penggunaan dan Pemeliharaan Kendaraan Dinas"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "03.03",
+    "nama": "Mutasi Klien Pemasyarakatan"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "03.03",
+    "nama": "Pengamanan dan Pemeliharaan"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "03.03",
+    "nama": "Pengangkatan Jabatan Struktural"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "03.04",
+    "nama": "LPJ Bendahara Penerimaan"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "03.04",
+    "nama": "Pengawasan Lainnya, Pendampingan, Sosialisasi, Perjanjian Kerja Sama"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "03.04",
+    "nama": "Rumah Negara"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "03.04",
+    "nama": "Penggunaan dan Pemeliharaan Barang Elektronik serta Mesin"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "03.04",
+    "nama": "Pengangkatan Jabatan Fungsional"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "03.05",
+    "nama": "Pemeliharaan Gedung dan Bangunan serta Area Kantor"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "03.05",
+    "nama": "Penerimaan Negara Pajak"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "03.05",
+    "nama": "Inspektorat Jenderal"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "03.06",
+    "nama": "Pemeliharaan Alat Kesehatan"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "03.07",
+    "nama": "Perjalanan Dinas (Dalam Negeri/Luar Negeri)"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "03.08",
+    "nama": "Penghematan Energi dan Air"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "04.01",
+    "nama": "Laporan Tindak Lanjut Hasil Audit Kinerja"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "04.01",
+    "nama": "Alih Tugas/Diperbantukan/Dipekerjakan/Pelaksana"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "04.01",
+    "nama": "Layanan Kepribadian"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "04.01",
+    "nama": "Pencatatan Barang Milik Negara"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "04.01",
+    "nama": "Penyelenggaraan Upacara"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "04.01",
+    "nama": "Laporan Keuangan"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "04.01",
+    "nama": "Laporan Tetap"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "04.02",
+    "nama": "Pelaksana Harian/Pelaksana Tugas"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "04.02",
+    "nama": "Laporan Tindak Lanjut Hasil Audit Khusus"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "04.02",
+    "nama": "Layanan Kemandirian"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "04.02",
+    "nama": "Rekonsiliasi dan Data Laporan Keuangan"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "04.02",
+    "nama": "Laporan Insidentil"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "04.02",
+    "nama": "Inventarisasi"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "04.02",
+    "nama": "Pelayanan Tamu, Acara Kedinasan, Jamuan dan Ramah Tamah"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "04.03",
+    "nama": "Layanan Pelindungan Hukum Tahanan dan Anak"
+  },
+  {
+    "buku_kode": "KU",
+    "kode": "04.03",
+    "nama": "Penyelesaian Tindak Lanjut Temuan Hasil Pemeriksaan BPK dan Inspektorat Jenderal"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "04.03",
+    "nama": "Pencantuman Gelar Akademik"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "04.03",
+    "nama": "Opname Fisik"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "04.03",
+    "nama": "Daftar Nama Pejabat dan Alamat"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "04.03",
+    "nama": "Tindak Lanjut BPKP RI, BPK RI, ITJEN"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "04.04",
+    "nama": "Kenaikan Gaji Berkala (KGB)"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "04.04",
+    "nama": "Pengeluaran Tahanan dan Anak"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "04.04",
+    "nama": "Rekonsiliasi Data Barang Milik Negara"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "04.05",
+    "nama": "Kenaikan Pangkat (KP)/Golongan"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "04.05",
+    "nama": "Pengawasan dan Pengendalian BMN"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "04.05",
+    "nama": "Tim Pertimbangan Pemasyarakatan Pelayanan Tahanan dan Anak"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "04.06",
+    "nama": "Laporan Barang Milik Negara"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "04.06",
+    "nama": "Peninjauan Masa Kerja"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "04.07",
+    "nama": "Berkas Badan Pertimbangan Jabatan dan Kepangkatan (Baperjakat)"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "04.08",
+    "nama": "Pengaktifan Kembali dari Cuti Luar Tanggungan Negara (CTLN) dan Hukuman Disiplin"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "05.01",
+    "nama": "Penilaian Prestasi Kerja Pegawai (PPKP)"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "05.01",
+    "nama": "Penjualan"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "05.01",
+    "nama": "Pengamanan Personil (VVIP/VIP)"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "05.01",
+    "nama": "Pembinaan Kepribadian"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "05.01",
+    "nama": "Dengan Dewan Perwakilan Rakyat (DPR)"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "05.01",
+    "nama": "Reviu"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "05.02",
+    "nama": "Pengamanan Lingkungan, Fisik dan Instalasi"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "05.02",
+    "nama": "Pembinaan Kemandirian"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "05.02",
+    "nama": "Tindak Lanjut Reviu"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "05.02",
+    "nama": "Tukar Menukar"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "05.02",
+    "nama": "Pembinaan Disiplin dan Kode Etik"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "05.02",
+    "nama": "Tingkat Kementerian"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "05.03",
+    "nama": "Pengamanan Dokumen dan Informasi Rahasia"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "05.03",
+    "nama": "Tingkat Unit Utama (Rapat Kerja Teknis)"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "05.03",
+    "nama": "Asimilasi dan Integrasi Narapidana dan Anak Binaan"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "05.03",
+    "nama": "Hibah"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "05.03",
+    "nama": "Pemberian Penghargaan dan Tanda Jasa"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "05.04",
+    "nama": "Pemusnahan"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "05.04",
+    "nama": "Laporan Keamanan"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "05.04",
+    "nama": "Tingkat Kantor Wilayah"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "05.04",
+    "nama": "Pengeluaran Narapidana dan Anak Binaan"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "05.05",
+    "nama": "Tim Pertimbangan Pemasyarakatan Pembinaan Narapidana dan Anak Binaan"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "05.05",
+    "nama": "Rapat Pimpinan dan Rapat Staf"
+  },
+  {
+    "buku_kode": "PB",
+    "kode": "05.05",
+    "nama": "Penghapusan"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "05.05",
+    "nama": "Laporan Kejadian"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "05.06",
+    "nama": "Bantuan Pengamanan"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "06.01",
+    "nama": "Penelitian Kemasyarakatan"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "06.01",
+    "nama": "Whistle Blowing System (WBS)"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "06.01",
+    "nama": "Sidang Kabinet Terbatas"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "06.01",
+    "nama": "Layanan Keagamaan dan Sosial"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "06.01",
+    "nama": "Pengembangan Kompetensi Jabatan Pimpinan Tinggi dan Administrasi"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "06.02",
+    "nama": "Pengembangan Kompetensi Fungsional"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "06.02",
+    "nama": "Sidang Kabinet Paripurna"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "06.02",
+    "nama": "Gratifikasi"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "06.02",
+    "nama": "Layanan Kesehatan Jasmani"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "06.02",
+    "nama": "Pendampingan Klien Pemasyarakatan dan Upaya Keadilan Restoratif Pemasyarakatan"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "06.03",
+    "nama": "Pembimbingan Klien Pemasyarakatan"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "06.03",
+    "nama": "Pengaduan Tertulis (SMS Gateway, PO BOX 3489, Email ITJEN)"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "06.03",
+    "nama": "Pengiriman Peserta Diklat"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "06.03",
+    "nama": "Pelayanan Kesehatan"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "06.04",
+    "nama": "Pengawasan Klien Pemasyarakatan"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "06.04",
+    "nama": "Bea Siswa"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "06.05",
+    "nama": "Tim Pertimbangan Pemasyarakatan Pembimbingan Klien Pemasyarakatan"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "06.05",
+    "nama": "Pengaduan Melalui Aplikasi LAPOR (Layanan Pengaduan Secara Online Rakyat)"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "06.06",
+    "nama": "Pengaduan Ombudsman"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "07.01",
+    "nama": "Perawatan Kesehatan Dasar"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "07.01",
+    "nama": "Akuisisi"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "07.01",
+    "nama": "Tingkat Ringan (Pernyataan Tidak Puas, Teguran Lisan, Teguran Tertulis)"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "07.01",
+    "nama": "Tanggapan/Telaahan Hukuman Disiplin Yang Tidak Ditindaklanjuti"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "07.02",
+    "nama": "Tingkat Sedang (Penundaan KGB, KP dan Penurunan Gaji)"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "07.02",
+    "nama": "Perawatan Kesehatan Lanjutan"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "07.02",
+    "nama": "Tanggapan/Telaahan Hukuman Disiplin Yang Ditindaklanjuti"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "07.02",
+    "nama": "Pengolahan Bahan Pustaka"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "07.03",
+    "nama": "Perawatan Kesehatan Khusus"
+  },
+  {
+    "buku_kode": "PW",
+    "kode": "07.03",
+    "nama": "Daftar Nama Pegawai Kementerian Imigrasi dan Pemasyarakatan yang Dikenakan Sanksi Hukuman Disiplin/Kartu Cela"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "07.03",
+    "nama": "Tingkat Berat (Penurunan Pangkat, Pembebasan Jabatan, Pemberhentian Dengan Hormat/Tidak Dengan Hormat)"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "07.03",
+    "nama": "Pangkalan Data Koleksi"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "07.04",
+    "nama": "Kebutuhan Dasar dan Kesehatan Lingkungan"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "07.04",
+    "nama": "Layanan Perpustakaan"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "07.05",
+    "nama": "Preservasi Bahan Pustaka"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "07.06",
+    "nama": "Pengembangan Perpustakaan"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "07.07",
+    "nama": "Pendidikan dan Pelatihan Perpustakaan"
+  },
+  {
+    "buku_kode": "UM",
+    "kode": "07.08",
+    "nama": "Tenaga Perpustakaan"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "08.01",
+    "nama": "Intelijen Pemasyarakatan"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "08.01",
+    "nama": "Data SDM Aparatur"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "08.02",
+    "nama": "Identitas Pegawai (Kartu Pegawai, Kartu Suami, Kartu Istri)"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "08.02",
+    "nama": "Pencegahan Gangguan Keamanan dan Pemeliharaan Keamanan"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "08.03",
+    "nama": "Izin Kepegawaian (Izin Belajar, Tugas Belajar Dalam Negeri dan Luar Negeri)"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "08.03",
+    "nama": "Penindakan dan Pemulihan"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "08.04",
+    "nama": "Keanggotaan SDM Aparatur Dalam Organisasi Sosial"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "08.05",
+    "nama": "Daftar Hadir/Absensi SDM Aparatur"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "09.01",
+    "nama": "Pencegahan dan Pengendalian"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "09.01",
+    "nama": "Kesehatan"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "09.02",
+    "nama": "Perumahan (Tabungan Perumahan (TAPERUM), Biaya Uang Muka)"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "09.02",
+    "nama": "Fasilitasi Advokasi dan Investigasi Internal"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "09.03",
+    "nama": "Tabungan dan Asuransi Pegawai Negeri (TASPEN)"
+  },
+  {
+    "buku_kode": "SA",
+    "kode": "09.04",
+    "nama": "Cuti"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "10.01",
+    "nama": "Pengelolaan Data dan Informasi"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "10.02",
+    "nama": "Statistik Tahanan dan Anak"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "10.03",
+    "nama": "Statistik Narapidana dan Anak Binaan"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "10.04",
+    "nama": "Statistik Klien Pemasyarakatan"
+  },
+  {
+    "buku_kode": "PK",
+    "kode": "10.05",
+    "nama": "Statistik Titipan"
+  },
+  {
+    "buku_kode": "PR",
+    "kode": "3",
+    "nama": "Laporan Akuntabilitas Kinerja Instansi Pemerintah (LAKIP)"
+  },
+  {
+    "buku_kode": "OT",
+    "kode": "4",
+    "nama": "Instruksi Menteri"
+  }
+]
