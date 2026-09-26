@@ -81,8 +81,13 @@ module.exports = {
     const db = readDb();
     if (db.buku) {
       db.buku = db.buku.filter((b) => b.kode !== kode);
-      writeDb(db);
     }
+    if (db.tipe_surat) {
+      db.tipe_surat = db.tipe_surat.filter(
+        (t) => String(t.buku_kode).trim().toUpperCase() !== String(kode).trim().toUpperCase()
+      );
+    }
+    writeDb(db);
     return true;
   },
 
