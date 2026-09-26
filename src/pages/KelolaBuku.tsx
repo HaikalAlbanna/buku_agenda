@@ -60,7 +60,7 @@ export default function KelolaBuku() {
   const [newTipeNama, setNewTipeNama] = useState("");
 
   /** =======================
-   *  FETCH SEMUA BUKU & TIPE (Single Query Super Cepat)
+   *  FETCH SEMUA BUKU & TIPE
    * ======================= */
   const fetchBuku = async () => {
     try {
@@ -198,11 +198,11 @@ export default function KelolaBuku() {
    * ======================= */
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground">
           Kelola Buku & Kode Tipe
         </h2>
-        <Button onClick={() => setAddBukuOpen(true)}>
+        <Button onClick={() => setAddBukuOpen(true)} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Tambah Buku
         </Button>
@@ -211,13 +211,13 @@ export default function KelolaBuku() {
       {loading ? (
         <div className="py-16 flex flex-col items-center justify-center space-y-3">
           <div className="h-7 w-7 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
-          <p className="text-sm text-muted-foreground animate-pulse">
+          <p className="text-xs sm:text-sm text-muted-foreground animate-pulse">
             Memuat data buku dan kode tipe...
           </p>
         </div>
       ) : buku.length === 0 ? (
         <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
+          <CardContent className="py-8 text-center text-muted-foreground text-sm">
             Belum ada buku. Tambahkan buku baru.
           </CardContent>
         </Card>
@@ -229,25 +229,26 @@ export default function KelolaBuku() {
               value={b.kode}
               className="border rounded-lg bg-card"
             >
-              <AccordionTrigger className="px-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <BookOpen className="h-4 w-4 text-primary" />
-                  <span className="font-semibold">{b.kode}</span>
-                  <span className="text-muted-foreground">— {b.nama}</span>
-                  <span className="text-xs text-muted-foreground">
+              <AccordionTrigger className="px-3 sm:px-4 py-3 hover:no-underline">
+                <div className="flex flex-wrap items-center gap-2 text-left">
+                  <BookOpen className="h-4 w-4 text-primary shrink-0" />
+                  <span className="font-semibold text-sm sm:text-base">{b.kode}</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">— {b.nama}</span>
+                  <span className="text-xs text-muted-foreground font-mono">
                     ({(b.tipeSurat || []).length} tipe)
                   </span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="px-4 pb-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-foreground">
+              <AccordionContent className="px-3 sm:px-4 pb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                  <span className="text-xs sm:text-sm font-medium text-foreground">
                     Kode Tipe Surat
                   </span>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
                       variant="outline"
+                      className="text-xs h-8"
                       onClick={() => setAddTipeOpen(b.kode)}
                     >
                       <Plus className="mr-1 h-3 w-3" />
@@ -256,6 +257,7 @@ export default function KelolaBuku() {
                     <Button
                       size="sm"
                       variant="destructive"
+                      className="text-xs h-8"
                       onClick={() => setDeleteBukuKode(b.kode)}
                     >
                       <Trash2 className="mr-1 h-3 w-3" />
@@ -264,41 +266,46 @@ export default function KelolaBuku() {
                   </div>
                 </div>
                 {(!b.tipeSurat || b.tipeSurat.length === 0) ? (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground py-2">
                     Belum ada kode tipe untuk buku ini.
                   </p>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Kode</TableHead>
-                        <TableHead>Nama</TableHead>
-                        <TableHead className="w-[60px]">Aksi</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {b.tipeSurat.map((t) => (
-                        <TableRow key={t.kode}>
-                          <TableCell className="font-mono">{t.kode}</TableCell>
-                          <TableCell>{t.nama}</TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() =>
-                                setDeleteTipeInfo({
-                                  bukuKode: b.kode,
-                                  tipeKode: t.kode,
-                                })
-                              }
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </TableCell>
+                  <div className="overflow-x-auto border rounded-md">
+                    <Table className="min-w-[450px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[100px]">Kode</TableHead>
+                          <TableHead>Nama Tipe Surat</TableHead>
+                          <TableHead className="w-[60px] text-right">Aksi</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {b.tipeSurat.map((t) => (
+                          <TableRow key={t.kode}>
+                            <TableCell className="font-mono text-xs sm:text-sm font-medium">
+                              {t.kode}
+                            </TableCell>
+                            <TableCell className="text-xs sm:text-sm">{t.nama}</TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() =>
+                                  setDeleteTipeInfo({
+                                    bukuKode: b.kode,
+                                    tipeKode: t.kode,
+                                  })
+                                }
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </AccordionContent>
             </AccordionItem>
@@ -308,16 +315,16 @@ export default function KelolaBuku() {
 
       {/* Add Buku Dialog */}
       <Dialog open={addBukuOpen} onOpenChange={(o) => setAddBukuOpen(o)}>
-        <DialogContent>
+        <DialogContent className="max-w-md w-[95vw] sm:w-full p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle>Tambah Buku Baru</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg">Tambah Buku Baru</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               Isi kode dan nama buku agenda baru yang ingin ditambahkan.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-2">
             <div>
-              <Label>Kode Buku</Label>
+              <Label className="text-xs sm:text-sm">Kode Buku</Label>
               <Input
                 value={newBukuKode}
                 onChange={(e) => setNewBukuKode(e.target.value.toUpperCase())}
@@ -326,7 +333,7 @@ export default function KelolaBuku() {
               />
             </div>
             <div>
-              <Label>Nama Buku</Label>
+              <Label className="text-xs sm:text-sm">Nama Buku</Label>
               <Input
                 value={newBukuNama}
                 onChange={(e) => setNewBukuNama(e.target.value)}
@@ -334,11 +341,11 @@ export default function KelolaBuku() {
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddBukuOpen(false)}>
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" className="w-full sm:w-auto" onClick={() => setAddBukuOpen(false)}>
               Batal
             </Button>
-            <Button onClick={handleAddBuku}>Tambah</Button>
+            <Button className="w-full sm:w-auto" onClick={handleAddBuku}>Tambah</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -348,16 +355,16 @@ export default function KelolaBuku() {
         open={!!addTipeOpen}
         onOpenChange={(o) => !o && setAddTipeOpen(null)}
       >
-        <DialogContent>
+        <DialogContent className="max-w-md w-[95vw] sm:w-full p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle>Tambah Kode Tipe — Buku {addTipeOpen}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg">Tambah Kode Tipe — Buku {addTipeOpen}</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               Isi kode dan nama tipe surat baru untuk buku ini.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-2">
             <div>
-              <Label>Kode Tipe</Label>
+              <Label className="text-xs sm:text-sm">Kode Tipe</Label>
               <Input
                 value={newTipeKode}
                 onChange={(e) => setNewTipeKode(e.target.value)}
@@ -365,7 +372,7 @@ export default function KelolaBuku() {
               />
             </div>
             <div>
-              <Label>Nama Tipe</Label>
+              <Label className="text-xs sm:text-sm">Nama Tipe</Label>
               <Input
                 value={newTipeNama}
                 onChange={(e) => setNewTipeNama(e.target.value)}
@@ -373,11 +380,11 @@ export default function KelolaBuku() {
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddTipeOpen(null)}>
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" className="w-full sm:w-auto" onClick={() => setAddTipeOpen(null)}>
               Batal
             </Button>
-            <Button onClick={handleAddTipe}>Tambah</Button>
+            <Button className="w-full sm:w-auto" onClick={handleAddTipe}>Tambah</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -387,17 +394,17 @@ export default function KelolaBuku() {
         open={!!deleteBukuKode}
         onOpenChange={(o) => !o && setDeleteBukuKode(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[95vw] sm:w-full p-4 sm:p-6">
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Buku {deleteBukuKode}?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-lg">Hapus Buku {deleteBukuKode}?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs sm:text-sm">
               Semua kode tipe di buku ini juga akan dihapus. Tindakan ini tidak
               bisa dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteBuku}>
+          <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
+            <AlertDialogCancel className="w-full sm:w-auto">Batal</AlertDialogCancel>
+            <AlertDialogAction className="w-full sm:w-auto" onClick={handleDeleteBuku}>
               Hapus
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -409,20 +416,20 @@ export default function KelolaBuku() {
         open={!!deleteTipeInfo}
         onOpenChange={(o) => !o && setDeleteTipeInfo(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[95vw] sm:w-full p-4 sm:p-6">
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle className="text-lg">
               Hapus Kode Tipe {deleteTipeInfo?.tipeKode}?
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-xs sm:text-sm">
               Tindakan ini tidak bisa dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteTipeInfo(null)}>
+          <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
+            <AlertDialogCancel className="w-full sm:w-auto" onClick={() => setDeleteTipeInfo(null)}>
               Batal
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteTipe}>
+            <AlertDialogAction className="w-full sm:w-auto" onClick={handleDeleteTipe}>
               Hapus
             </AlertDialogAction>
           </AlertDialogFooter>

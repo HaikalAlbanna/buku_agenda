@@ -12,7 +12,7 @@ export default function Layout() {
             <SidebarTrigger />
             <h1 className="ml-3 text-sm font-semibold text-foreground">Buku Agenda</h1>
           </header>
-          <main className="flex-1 p-6 overflow-auto bg-muted/30">
+          <main className="flex-1 p-3 sm:p-6 overflow-auto bg-muted/30">
             <Outlet />
           </main>
         </div>
