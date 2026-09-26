@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fileToBase64 } from "@/lib/store";
 import { authFetch, API_BASE } from "@/lib/api";
+import { useData } from "@/context/DataContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +48,7 @@ interface SuratMasukType {
 const MAX_PDF_SIZE = 1 * 1024 * 1024; // 1 MB
 
 export default function SuratMasuk() {
-  const [data, setData] = useState<SuratMasukType[]>([]);
+  const { suratMasuk: data, refreshSuratMasuk } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -61,33 +62,6 @@ export default function SuratMasuk() {
     name: string;
     data: string;
   } | null>(null);
-
-  /* ================= LOAD DATA ================= */
-
-  async function loadSuratMasuk() {
-    try {
-      const res = await authFetch(`${API_BASE}/masuk`);
-      const raw = await res.json();
-
-      const formatted: SuratMasukType[] = (raw || []).map((item: any) => ({
-        id: item.id,
-        nomorSurat: item.nomor_surat || item.nomorSurat || "",
-        tanggal: item.tanggal || "",
-        suratDari: item.surat_dari || item.suratDari || "",
-        perihal: item.perihal || "",
-        pdfFileName: item.arsip_pdf ? `Arsip_SM_${item.id}.pdf` : null,
-        pdfData: item.arsip_pdf || null,
-      }));
-
-      setData(formatted);
-    } catch (e) {
-      console.error("Gagal load surat masuk", e);
-    }
-  }
-
-  useEffect(() => {
-    loadSuratMasuk();
-  }, []);
 
   function resetForm() {
     setFormNomor("");
@@ -192,7 +166,7 @@ export default function SuratMasuk() {
 
     setDialogOpen(false);
     resetForm();
-    loadSuratMasuk();
+    refreshSuratMasuk();
   }
 
   /* ================= DELETE ================= */

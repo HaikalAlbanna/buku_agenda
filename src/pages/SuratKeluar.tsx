@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { buildNomorSurat, fileToBase64 } from "@/lib/store";
 import { authFetch, API_BASE } from "@/lib/api";
+import { useData } from "@/context/DataContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,9 +69,7 @@ interface SuratKeluarType {
 const MAX_PDF_SIZE = 1 * 1024 * 1024; // 1 MB
 
 export default function SuratKeluar() {
-  const [buku, setBuku] = useState<Buku[]>([]);
-  const [tipe, setTipe] = useState<TipeSurat[]>([]);
-  const [data, setData] = useState<SuratKeluarType[]>([]);
+  const { buku, suratKeluar: data, refreshSuratKeluar } = useData();
   const [filterBuku, setFilterBuku] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -88,51 +87,10 @@ export default function SuratKeluar() {
     data: string;
   } | null>(null);
 
-  /* ================= LOAD DATA ================= */
-
-  async function loadSuratKeluar() {
-    try {
-      const res = await authFetch(`${API_BASE}/surat_keluar`);
-      const json = await res.json();
-      setData(json || []);
-    } catch (e) {
-      console.error("Gagal load surat keluar", e);
-    }
-  }
-
-  async function loadBuku() {
-    try {
-      const res = await authFetch(`${API_BASE}/buku`);
-      const json = await res.json();
-      setBuku(json || []);
-    } catch (e) {
-      console.error("Gagal load buku", e);
-    }
-  }
-
-  async function loadTipe(kode: string) {
-    try {
-      const res = await authFetch(`${API_BASE}/tipe_surat/${kode}`);
-      const json = await res.json();
-      setTipe(json || []);
-    } catch (e) {
-      console.error("Gagal load tipe", e);
-    }
-  }
-
-  useEffect(() => {
-    loadSuratKeluar();
-    loadBuku();
-  }, []);
-
-  useEffect(() => {
-    if (formBuku) {
-      loadTipe(formBuku);
-      setFormTipe("");
-    } else {
-      setTipe([]);
-    }
-  }, [formBuku]);
+  const selectedBukuObj = buku.find(
+    (b) => String(b.kode).trim().toUpperCase() === String(formBuku).trim().toUpperCase()
+  );
+  const tipeOptions = selectedBukuObj?.tipeSurat || [];
 
   const previewNomor =
     formBuku && formTipe && formNomor
@@ -304,7 +262,7 @@ export default function SuratKeluar() {
 
     setDialogOpen(false);
     resetForm();
-    loadSuratKeluar();
+    refreshSuratKeluar();
   }
 
   /* ================= DELETE ================= */
@@ -316,7 +274,7 @@ export default function SuratKeluar() {
     });
     setDeleteId(null);
     toast({ title: "Dihapus", description: "Surat keluar dihapus" });
-    loadSuratKeluar();
+    refreshSuratKeluar();
   }
 
   return (
@@ -469,7 +427,7 @@ export default function SuratKeluar() {
                     <SelectValue placeholder="Pilih tipe" />
                   </SelectTrigger>
                   <SelectContent>
-                    {tipe.map((t) => (
+                    {tipeOptions.map((t) => (
                       <SelectItem key={t.kode} value={t.kode}>
                         {t.kode} — {t.nama}
                       </SelectItem>

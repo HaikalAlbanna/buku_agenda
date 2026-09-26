@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { DataProvider } from "@/context/DataContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import Dashboard from "@/pages/Dashboard";
@@ -28,25 +29,27 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<PublicLoginRoute />} />
+        <DataProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<PublicLoginRoute />} />
 
-            <Route element={<ProtectedRoute />}>
-              <Route element={<Layout />}>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/surat-keluar" element={<SuratKeluar />} />
-                <Route path="/surat-masuk" element={<SuratMasuk />} />
-                <Route path="/kelola-buku" element={<KelolaBuku />} />
-                <Route path="/export" element={<ExportBackup />} />
+              <Route element={<ProtectedRoute />}>
+                <Route element={<Layout />}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/surat-keluar" element={<SuratKeluar />} />
+                  <Route path="/surat-masuk" element={<SuratMasuk />} />
+                  <Route path="/kelola-buku" element={<KelolaBuku />} />
+                  <Route path="/export" element={<ExportBackup />} />
+                </Route>
               </Route>
-            </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </DataProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

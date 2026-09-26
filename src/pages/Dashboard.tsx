@@ -1,82 +1,16 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { API_BASE } from "@/lib/api";
+import { useData } from "@/context/DataContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MailOpen, BookOpen, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 
-type Buku = { kode: string; nama: string };
-
-type SuratMasuk = {
-  id: number;
-  nomor_surat: string;
-  tanggal: string;
-  surat_dari: string;
-  perihal: string;
-  arsip_pdf: string;
-};
-
-type SuratKeluar = {
-  id: number;
-  nomor_surat: string;
-  tanggal: string;
-  alamat_dituju: string;
-  perihal: string;
-  pdf_file_name: string;
-};
-
-type TipeSurat = {
-  id: number;
-  kode: string;
-  nama: string;
-};
-
 export default function Dashboard() {
-  const [buku, setBuku] = useState<Buku[]>([]);
-  const [masuk, setMasuk] = useState<SuratMasuk[]>([]);
-  const [keluar, setKeluar] = useState<SuratKeluar[]>([]);
-  const [tipePerBuku, setTipePerBuku] = useState<Record<string, TipeSurat[]>>(
-    {},
-  );
-
-  useEffect(() => {
-    // ==============================
-    // FETCH BUKU & TIPE (Single Query Super Cepat)
-    // ==============================
-    axios
-      .get(`${API_BASE}/buku?include=tipe`)
-      .then((res) => {
-        setBuku(res.data || []);
-        const map: Record<string, TipeSurat[]> = {};
-        (res.data || []).forEach((b: any) => {
-          map[b.kode] = b.tipeSurat || [];
-        });
-        setTipePerBuku(map);
-      })
-      .catch((err) => console.error("Gagal fetch buku:", err));
-
-    // ==============================
-    // FETCH SURAT MASUK
-    // ==============================
-    axios
-      .get(`${API_BASE}/masuk`)
-      .then((res) => setMasuk(res.data))
-      .catch((err) => console.error("Gagal fetch surat masuk:", err));
-
-    // ==============================
-    // FETCH SURAT KELUAR  ✅ BARU
-    // ==============================
-    axios
-      .get(`${API_BASE}/surat_keluar`)
-      .then((res) => setKeluar(res.data))
-      .catch((err) => console.error("Gagal fetch surat keluar:", err));
-  }, []);
+  const { buku, suratKeluar: keluar, suratMasuk: masuk } = useData();
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
+      <h2 className="text-xl sm:text-2xl font-bold text-foreground">Dashboard</h2>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         {/* Surat Masuk */}
         <Link to="/surat-masuk">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
@@ -87,7 +21,7 @@ export default function Dashboard() {
               <MailOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-foreground">
+              <div className="text-2xl sm:text-3xl font-bold text-foreground">
                 {masuk.length}
               </div>
             </CardContent>
@@ -104,16 +38,16 @@ export default function Dashboard() {
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-foreground">
+              <div className="text-2xl sm:text-3xl font-bold text-foreground">
                 {buku.length}
               </div>
             </CardContent>
           </Card>
         </Link>
 
-        {/* Surat Keluar ✅ SUDAH TERHUBUNG DATABASE */}
+        {/* Surat Keluar */}
         <Link to="/surat-keluar">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer sm:col-span-2 md:col-span-1">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Surat Keluar
@@ -121,7 +55,7 @@ export default function Dashboard() {
               <Send className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-foreground">
+              <div className="text-2xl sm:text-3xl font-bold text-foreground">
                 {keluar.length}
               </div>
             </CardContent>
@@ -130,7 +64,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Surat Keluar per Buku → jumlah tipe surat */}
+        {/* Surat Keluar per Buku (Jumlah Tipe) */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
@@ -147,13 +81,13 @@ export default function Dashboard() {
                 {buku.map((b) => (
                   <div
                     key={b.kode}
-                    className="flex items-center justify-between text-sm"
+                    className="flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0"
                   >
-                    <span className="text-foreground">
+                    <span className="text-foreground font-medium">
                       {b.kode} — {b.nama}
                     </span>
                     <span className="font-semibold text-foreground">
-                      {tipePerBuku[b.kode]?.length ?? 0}
+                      {(b.tipeSurat || []).length} tipe
                     </span>
                   </div>
                 ))}
@@ -179,12 +113,12 @@ export default function Dashboard() {
                   .map((s) => (
                     <div
                       key={`masuk-${s.id}`}
-                      className="flex items-center justify-between text-sm"
+                      className="flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0"
                     >
-                      <span className="truncate max-w-[200px]">
-                        {s.nomor_surat}
+                      <span className="truncate max-w-[200px] font-mono text-xs">
+                        {s.nomorSurat}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 px-1.5 py-0.5 rounded font-medium">
                         Masuk
                       </span>
                     </div>
@@ -197,12 +131,12 @@ export default function Dashboard() {
                   .map((s) => (
                     <div
                       key={`keluar-${s.id}`}
-                      className="flex items-center justify-between text-sm"
+                      className="flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0"
                     >
-                      <span className="truncate max-w-[200px]">
+                      <span className="truncate max-w-[200px] font-mono text-xs">
                         {s.nomor_surat}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-1.5 py-0.5 rounded font-medium">
                         Keluar
                       </span>
                     </div>

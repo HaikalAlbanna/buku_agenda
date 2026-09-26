@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { API_BASE } from "@/lib/api";
+import { useData } from "@/context/DataContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,8 +45,7 @@ type TipeSurat = { kode: string; nama: string };
 type Buku = { kode: string; nama: string; tipeSurat: TipeSurat[] };
 
 export default function KelolaBuku() {
-  const [buku, setBuku] = useState<Buku[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { buku, refreshBuku } = useData();
   const [addBukuOpen, setAddBukuOpen] = useState(false);
   const [addTipeOpen, setAddTipeOpen] = useState<string | null>(null);
   const [deleteBukuKode, setDeleteBukuKode] = useState<string | null>(null);
@@ -58,29 +58,6 @@ export default function KelolaBuku() {
   const [newBukuNama, setNewBukuNama] = useState("");
   const [newTipeKode, setNewTipeKode] = useState("");
   const [newTipeNama, setNewTipeNama] = useState("");
-
-  /** =======================
-   *  FETCH SEMUA BUKU & TIPE
-   * ======================= */
-  const fetchBuku = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get<Buku[]>(`${API_BASE}/buku?include=tipe`);
-      setBuku(res.data || []);
-    } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err.response?.data?.error || err.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBuku();
-  }, []);
 
   /** =======================
    *  TAMBAH BUKU
@@ -111,7 +88,7 @@ export default function KelolaBuku() {
       setNewBukuKode("");
       setNewBukuNama("");
       setAddBukuOpen(false);
-      fetchBuku();
+      refreshBuku();
     } catch (err: any) {
       toast({
         title: "Error",
@@ -130,7 +107,7 @@ export default function KelolaBuku() {
       await axios.delete(`${API_BASE}/buku/${deleteBukuKode}`);
       toast({ title: "Dihapus", description: "Buku telah dihapus" });
       setDeleteBukuKode(null);
-      fetchBuku();
+      refreshBuku();
     } catch (err: any) {
       toast({
         title: "Error",
@@ -162,7 +139,7 @@ export default function KelolaBuku() {
       setNewTipeKode("");
       setNewTipeNama("");
       setAddTipeOpen(null);
-      fetchBuku();
+      refreshBuku();
     } catch (err: any) {
       toast({
         title: "Error",
@@ -183,7 +160,7 @@ export default function KelolaBuku() {
       );
       toast({ title: "Dihapus", description: "Kode tipe telah dihapus" });
       setDeleteTipeInfo(null);
-      fetchBuku();
+      refreshBuku();
     } catch (err: any) {
       toast({
         title: "Error",
@@ -208,14 +185,7 @@ export default function KelolaBuku() {
         </Button>
       </div>
 
-      {loading ? (
-        <div className="py-16 flex flex-col items-center justify-center space-y-3">
-          <div className="h-7 w-7 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
-          <p className="text-xs sm:text-sm text-muted-foreground animate-pulse">
-            Memuat data buku dan kode tipe...
-          </p>
-        </div>
-      ) : buku.length === 0 ? (
+      {buku.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground text-sm">
             Belum ada buku. Tambahkan buku baru.
