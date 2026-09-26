@@ -17,6 +17,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -264,6 +265,9 @@ export default function SuratMasuk() {
             <DialogTitle>
               {editId ? "Edit Surat Masuk" : "Tambah Surat Masuk"}
             </DialogTitle>
+            <DialogDescription>
+              Isi data surat masuk secara lengkap.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">

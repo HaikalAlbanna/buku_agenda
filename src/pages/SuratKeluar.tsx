@@ -24,6 +24,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -351,6 +352,9 @@ function openAdd() {
             <DialogTitle>
               {editId ? "Edit Surat Keluar" : "Tambah Surat Keluar"}
             </DialogTitle>
+            <DialogDescription>
+              Isi data surat keluar secara lengkap.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">

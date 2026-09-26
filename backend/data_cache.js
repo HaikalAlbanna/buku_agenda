@@ -3,9 +3,9 @@
  * 
  * Strategi:
  * 1. Saat server start → muat semua data dari localStore ke memori (instan)
- * 2. Background sync → coba ambil data dari Supabase, update cache jika berhasil
+ * 2. Background sync → ambil data dari Supabase & MERGE dengan data lokal agar tidak ada data hilang
  * 3. Semua request GET → dilayani dari cache (< 1ms)
- * 4. Semua request POST/PUT/DELETE → update cache + kirim ke Supabase/localStore
+ * 4. Semua request POST/PUT/DELETE → update cache + localStore + kirim ke Supabase
  */
 
 const localStore = require("./local_store");
@@ -33,7 +33,7 @@ function initCache() {
   );
 }
 
-// ============ BACKGROUND SYNC: Coba update dari Supabase ============
+// ============ BACKGROUND SYNC: Merge Supabase dengan data lokal ============
 async function syncFromSupabase() {
   try {
     const supabase = require("./supabase");
@@ -47,29 +47,85 @@ async function syncFromSupabase() {
 
     let updated = false;
 
-    if (resBuku.status === "fulfilled" && !resBuku.value.error && resBuku.value.data?.length > 0) {
-      cache.buku = resBuku.value.data;
+    // 1. MERGE BUKU
+    if (resBuku.status === "fulfilled" && !resBuku.value.error && resBuku.value.data) {
+      const sbBuku = resBuku.value.data;
+      const localBuku = localStore.getBuku();
+      const mapBuku = new Map();
+
+      for (const b of sbBuku) mapBuku.set(b.kode, b);
+      for (const b of localBuku) {
+        if (!mapBuku.has(b.kode)) mapBuku.set(b.kode, b);
+      }
+      for (const b of cache.buku) {
+        if (!mapBuku.has(b.kode)) mapBuku.set(b.kode, b);
+      }
+
+      cache.buku = Array.from(mapBuku.values()).sort((a, b) => a.kode.localeCompare(b.kode));
       updated = true;
     }
+
+    // 2. MERGE TIPE SURAT
     if (resTipe.status === "fulfilled" && !resTipe.value.error && resTipe.value.data) {
-      cache.tipe_surat = resTipe.value.data;
+      const sbTipe = resTipe.value.data;
+      const localTipe = localStore.getTipeSurat();
+      const mapTipe = new Map();
+      const makeKey = (t) => `${String(t.buku_kode).trim().toUpperCase()}:${String(t.kode).trim()}`;
+
+      for (const t of sbTipe) mapTipe.set(makeKey(t), t);
+      for (const t of localTipe) {
+        if (!mapTipe.has(makeKey(t))) mapTipe.set(makeKey(t), t);
+      }
+      for (const t of cache.tipe_surat) {
+        if (!mapTipe.has(makeKey(t))) mapTipe.set(makeKey(t), t);
+      }
+
+      cache.tipe_surat = Array.from(mapTipe.values()).sort((a, b) => a.kode.localeCompare(b.kode));
       updated = true;
     }
+
+    // 3. MERGE SURAT MASUK
     if (resMasuk.status === "fulfilled" && !resMasuk.value.error && resMasuk.value.data) {
-      cache.masuk = resMasuk.value.data;
+      const sbMasuk = resMasuk.value.data;
+      const localMasuk = localStore.getMasuk();
+      const mapMasuk = new Map();
+
+      for (const m of sbMasuk) mapMasuk.set(String(m.id), m);
+      for (const m of localMasuk) {
+        if (!mapMasuk.has(String(m.id))) mapMasuk.set(String(m.id), m);
+      }
+      for (const m of cache.masuk) {
+        if (!mapMasuk.has(String(m.id))) mapMasuk.set(String(m.id), m);
+      }
+
+      cache.masuk = Array.from(mapMasuk.values());
       updated = true;
     }
+
+    // 4. MERGE SURAT KELUAR
     if (resKeluar.status === "fulfilled" && !resKeluar.value.error && resKeluar.value.data) {
-      cache.surat_keluar = resKeluar.value.data;
+      const sbKeluar = resKeluar.value.data;
+      const localKeluar = localStore.getSuratKeluar();
+      const mapKeluar = new Map();
+
+      for (const k of sbKeluar) mapKeluar.set(String(k.id), k);
+      for (const k of localKeluar) {
+        if (!mapKeluar.has(String(k.id))) mapKeluar.set(String(k.id), k);
+      }
+      for (const k of cache.surat_keluar) {
+        if (!mapKeluar.has(String(k.id))) mapKeluar.set(String(k.id), k);
+      }
+
+      cache.surat_keluar = Array.from(mapKeluar.values());
       updated = true;
     }
 
     cache.lastSync = Date.now();
     if (updated) {
-      console.log("🔄 Cache diperbarui dari Supabase");
+      console.log(`🔄 Cache diperbarui: ${cache.buku.length} buku, ${cache.tipe_surat.length} tipe`);
     }
   } catch (e) {
-    // Supabase tidak tersedia — cache tetap menggunakan data localStore
+    console.error("⚠️ Error saat syncFromSupabase:", e.message);
   }
 }
 
@@ -117,31 +173,41 @@ function getSuratKeluarById(id) {
   return cache.surat_keluar.find((s) => String(s.id) === String(id)) || null;
 }
 
-// ============ MUTATORS (Update cache + Supabase + localStore) ============
+// ============ MUTATORS ============
 
 // BUKU
 async function addBuku(newBuku) {
-  // Update cache langsung
-  if (!cache.buku.find((b) => b.kode === newBuku.kode)) {
+  const exists = cache.buku.find((b) => b.kode === newBuku.kode);
+  if (!exists) {
     cache.buku.push(newBuku);
     cache.buku.sort((a, b) => a.kode.localeCompare(b.kode));
   }
   localStore.addBuku(newBuku);
 
-  // Kirim ke Supabase (non-blocking)
   try {
     const supabase = require("./supabase");
-    await supabase.from("buku").upsert([newBuku]);
-  } catch (e) {}
+    const { error } = await supabase.from("buku").upsert([newBuku]);
+    if (error) {
+      console.error("⚠️ Error upserting buku to Supabase:", error.message || error);
+    } else {
+      console.log("✅ Buku berhasil disimpan ke Supabase:", newBuku.kode);
+    }
+  } catch (e) {
+    console.error("⚠️ Exception upserting buku:", e.message);
+  }
   return newBuku;
 }
 
 async function deleteBuku(kode) {
   cache.buku = cache.buku.filter((b) => b.kode !== kode);
+  cache.tipe_surat = cache.tipe_surat.filter(
+    (t) => String(t.buku_kode).trim().toUpperCase() !== String(kode).trim().toUpperCase()
+  );
   localStore.deleteBuku(kode);
 
   try {
     const supabase = require("./supabase");
+    await supabase.from("tipe_surat").delete().eq("buku_kode", kode);
     await supabase.from("buku").delete().eq("kode", kode);
   } catch (e) {}
   return true;
@@ -149,31 +215,60 @@ async function deleteBuku(kode) {
 
 // TIPE SURAT
 async function addTipeSurat(newTipe) {
+  const cleanBukuKode = String(newTipe.buku_kode).trim().toUpperCase();
+  const cleanKode = String(newTipe.kode).trim();
+  const formattedTipe = {
+    buku_kode: cleanBukuKode,
+    kode: cleanKode,
+    nama: newTipe.nama.trim(),
+  };
+
   const exists = cache.tipe_surat.find(
-    (t) => t.buku_kode === newTipe.buku_kode && t.kode === newTipe.kode
+    (t) =>
+      String(t.buku_kode).trim().toUpperCase() === cleanBukuKode &&
+      String(t.kode).trim() === cleanKode
   );
+
   if (!exists) {
-    cache.tipe_surat.push(newTipe);
+    cache.tipe_surat.push(formattedTipe);
     cache.tipe_surat.sort((a, b) => a.kode.localeCompare(b.kode));
   }
-  localStore.addTipeSurat(newTipe);
+  localStore.addTipeSurat(formattedTipe);
 
   try {
     const supabase = require("./supabase");
-    await supabase.from("tipe_surat").upsert([newTipe]);
-  } catch (e) {}
-  return newTipe;
+    const { error } = await supabase.from("tipe_surat").upsert([formattedTipe]);
+    if (error) {
+      console.error("⚠️ Error upserting tipe_surat to Supabase:", error.message || error);
+    } else {
+      console.log("✅ Tipe surat berhasil disimpan ke Supabase:", cleanBukuKode, cleanKode);
+    }
+  } catch (e) {
+    console.error("⚠️ Exception upserting tipe_surat:", e.message);
+  }
+  return formattedTipe;
 }
 
 async function deleteTipeSurat(buku_kode, kode) {
+  const cleanBukuKode = String(buku_kode).trim().toUpperCase();
+  const cleanKode = String(kode).trim();
+
   cache.tipe_surat = cache.tipe_surat.filter(
-    (t) => !(t.buku_kode === buku_kode && t.kode === kode)
+    (t) =>
+      !(
+        String(t.buku_kode).trim().toUpperCase() === cleanBukuKode &&
+        String(t.kode).trim() === cleanKode
+      )
   );
   localStore.deleteTipeSurat(buku_kode, kode);
 
   try {
     const supabase = require("./supabase");
-    await supabase.from("tipe_surat").delete().eq("buku_kode", buku_kode).eq("kode", kode);
+    await supabase
+      .from("tipe_surat")
+      .delete()
+      .eq("buku_kode", buku_kode)
+      .eq("kode", kode);
   } catch (e) {}
   return true;
 }
@@ -185,7 +280,8 @@ async function addMasuk(item) {
 
   try {
     const supabase = require("./supabase");
-    await supabase.from("masuk").insert([{ ...item, id: saved.id }]);
+    const { error } = await supabase.from("masuk").insert([{ ...item, id: saved.id }]);
+    if (error) console.error("⚠️ Error insert masuk to Supabase:", error.message || error);
   } catch (e) {}
   return saved;
 }
@@ -222,7 +318,8 @@ async function addSuratKeluar(item) {
 
   try {
     const supabase = require("./supabase");
-    await supabase.from("surat_keluar").insert([item]);
+    const { error } = await supabase.from("surat_keluar").insert([item]);
+    if (error) console.error("⚠️ Error insert surat_keluar to Supabase:", error.message || error);
   } catch (e) {}
   return saved;
 }

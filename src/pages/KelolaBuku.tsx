@@ -16,6 +16,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -310,6 +311,9 @@ export default function KelolaBuku() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Tambah Buku Baru</DialogTitle>
+            <DialogDescription>
+              Isi kode dan nama buku agenda baru yang ingin ditambahkan.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -347,6 +351,9 @@ export default function KelolaBuku() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Tambah Kode Tipe — Buku {addTipeOpen}</DialogTitle>
+            <DialogDescription>
+              Isi kode dan nama tipe surat baru untuk buku ini.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>

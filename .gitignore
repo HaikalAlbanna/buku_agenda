@@ -32,3 +32,4 @@ local_db.json
 *.njsproj
 *.sln
 *.sw?
+.vercel
