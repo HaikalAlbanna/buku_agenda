@@ -59,10 +59,15 @@ export default function KelolaBuku() {
   const [newTipeKode, setNewTipeKode] = useState("");
   const [newTipeNama, setNewTipeNama] = useState("");
 
+  const [isSubmittingBuku, setIsSubmittingBuku] = useState(false);
+  const [isSubmittingTipe, setIsSubmittingTipe] = useState(false);
+
   /** =======================
    *  TAMBAH BUKU
    * ======================= */
   const handleAddBuku = async () => {
+    if (isSubmittingBuku) return;
+
     if (!newBukuKode || !newBukuNama) {
       toast({
         title: "Error",
@@ -79,6 +84,8 @@ export default function KelolaBuku() {
       });
       return;
     }
+
+    setIsSubmittingBuku(true);
     try {
       await axios.post(`${API_BASE}/buku`, {
         kode: newBukuKode.toUpperCase(),
@@ -95,6 +102,8 @@ export default function KelolaBuku() {
         description: err.response?.data?.error || err.message,
         variant: "destructive",
       });
+    } finally {
+      setIsSubmittingBuku(false);
     }
   };
 
@@ -121,6 +130,8 @@ export default function KelolaBuku() {
    *  TAMBAH TIPE SURAT
    * ======================= */
   const handleAddTipe = async () => {
+    if (isSubmittingTipe) return;
+
     if (!addTipeOpen || !newTipeKode || !newTipeNama) {
       toast({
         title: "Error",
@@ -129,6 +140,8 @@ export default function KelolaBuku() {
       });
       return;
     }
+
+    setIsSubmittingTipe(true);
     try {
       await axios.post(`${API_BASE}/tipe_surat`, {
         buku_kode: addTipeOpen,
@@ -146,6 +159,8 @@ export default function KelolaBuku() {
         description: err.response?.data?.error || err.message,
         variant: "destructive",
       });
+    } finally {
+      setIsSubmittingTipe(false);
     }
   };
 
@@ -315,7 +330,9 @@ export default function KelolaBuku() {
             <Button variant="outline" className="w-full sm:w-auto" onClick={() => setAddBukuOpen(false)}>
               Batal
             </Button>
-            <Button className="w-full sm:w-auto" onClick={handleAddBuku}>Tambah</Button>
+            <Button className="w-full sm:w-auto" onClick={handleAddBuku} disabled={isSubmittingBuku}>
+              {isSubmittingBuku ? "Menambahkan..." : "Tambah"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -354,7 +371,9 @@ export default function KelolaBuku() {
             <Button variant="outline" className="w-full sm:w-auto" onClick={() => setAddTipeOpen(null)}>
               Batal
             </Button>
-            <Button className="w-full sm:w-auto" onClick={handleAddTipe}>Tambah</Button>
+            <Button className="w-full sm:w-auto" onClick={handleAddTipe} disabled={isSubmittingTipe}>
+              {isSubmittingTipe ? "Menambahkan..." : "Tambah"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

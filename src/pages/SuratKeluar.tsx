@@ -213,9 +213,13 @@ export default function SuratKeluar() {
     }
   }
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   /* ================= SAVE ================= */
 
   async function handleSave() {
+    if (isSubmitting) return;
+
     if (!formBuku || !formTipe || !formNomor || !formTanggal || !formPerihal) {
       toast({
         title: "Error",
@@ -225,44 +229,55 @@ export default function SuratKeluar() {
       return;
     }
 
-    let pdfFileName = existingPdf?.name || null;
-    let pdfData = existingPdf?.data || null;
+    setIsSubmitting(true);
+    try {
+      let pdfFileName = existingPdf?.name || null;
+      let pdfData = existingPdf?.data || null;
 
-    if (formPdf) {
-      pdfFileName = formPdf.name;
-      pdfData = await fileToBase64(formPdf);
-    }
+      if (formPdf) {
+        pdfFileName = formPdf.name;
+        pdfData = await fileToBase64(formPdf);
+      }
 
-    const payload = {
-      id: editId ?? uuidv4(),
-      bukuKode: formBuku,
-      tipeKode: formTipe,
-      nomorUrut: formNomor,
-      nomorSurat: buildNomorSurat(formBuku, formTipe, formNomor),
-      tanggal: formTanggal,
-      alamatDituju: formAlamat,
-      perihal: formPerihal,
-      pdfFileName,
-      pdfData,
-    };
+      const payload = {
+        id: editId ?? uuidv4(),
+        bukuKode: formBuku,
+        tipeKode: formTipe,
+        nomorUrut: formNomor,
+        nomorSurat: buildNomorSurat(formBuku, formTipe, formNomor),
+        tanggal: formTanggal,
+        alamatDituju: formAlamat,
+        perihal: formPerihal,
+        pdfFileName,
+        pdfData,
+      };
 
-    if (editId) {
-      await authFetch(`${API_BASE}/surat_keluar/${editId}`, {
-        method: "PUT",
-        body: JSON.stringify(payload),
+      if (editId) {
+        await authFetch(`${API_BASE}/surat_keluar/${editId}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+        toast({ title: "Berhasil", description: "Surat keluar diperbarui" });
+      } else {
+        await authFetch(`${API_BASE}/surat_keluar`, {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        toast({ title: "Berhasil", description: "Surat keluar ditambahkan" });
+      }
+
+      setDialogOpen(false);
+      resetForm();
+      refreshSuratKeluar();
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Gagal menyimpan data",
+        variant: "destructive",
       });
-      toast({ title: "Berhasil", description: "Surat keluar diperbarui" });
-    } else {
-      await authFetch(`${API_BASE}/surat_keluar`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      toast({ title: "Berhasil", description: "Surat keluar ditambahkan" });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setDialogOpen(false);
-    resetForm();
-    refreshSuratKeluar();
   }
 
   /* ================= DELETE ================= */
@@ -534,8 +549,8 @@ export default function SuratKeluar() {
             >
               Batal
             </Button>
-            <Button className="w-full sm:w-auto" onClick={handleSave}>
-              {editId ? "Simpan" : "Tambah"}
+            <Button className="w-full sm:w-auto" onClick={handleSave} disabled={isSubmitting}>
+              {isSubmitting ? "Menyimpan..." : editId ? "Simpan" : "Tambah"}
             </Button>
           </DialogFooter>
         </DialogContent>

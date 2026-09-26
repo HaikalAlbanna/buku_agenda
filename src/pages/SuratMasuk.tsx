@@ -124,9 +124,13 @@ export default function SuratMasuk() {
     }
   }
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   /* ================= SAVE ================= */
 
   async function handleSave() {
+    if (isSubmitting) return;
+
     if (!formNomor || !formTanggal || !formDari || !formPerihal) {
       toast({
         title: "Error",
@@ -136,37 +140,48 @@ export default function SuratMasuk() {
       return;
     }
 
-    let arsipPdf = existingPdf?.data || null;
+    setIsSubmitting(true);
+    try {
+      let arsipPdf = existingPdf?.data || null;
 
-    if (formPdf) {
-      arsipPdf = await fileToBase64(formPdf);
-    }
+      if (formPdf) {
+        arsipPdf = await fileToBase64(formPdf);
+      }
 
-    const payload = {
-      nomor_surat: formNomor,
-      tanggal: formTanggal,
-      surat_dari: formDari,
-      perihal: formPerihal,
-      arsip_pdf: arsipPdf,
-    };
+      const payload = {
+        nomor_surat: formNomor,
+        tanggal: formTanggal,
+        surat_dari: formDari,
+        perihal: formPerihal,
+        arsip_pdf: arsipPdf,
+      };
 
-    if (editId) {
-      await authFetch(`${API_BASE}/masuk/${editId}`, {
-        method: "PUT",
-        body: JSON.stringify(payload),
+      if (editId) {
+        await authFetch(`${API_BASE}/masuk/${editId}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+        toast({ title: "Berhasil", description: "Surat masuk diperbarui" });
+      } else {
+        await authFetch(`${API_BASE}/masuk`, {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        toast({ title: "Berhasil", description: "Surat masuk ditambahkan" });
+      }
+
+      setDialogOpen(false);
+      resetForm();
+      refreshSuratMasuk();
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Gagal menyimpan data",
+        variant: "destructive",
       });
-      toast({ title: "Berhasil", description: "Surat masuk diperbarui" });
-    } else {
-      await authFetch(`${API_BASE}/masuk`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      toast({ title: "Berhasil", description: "Surat masuk ditambahkan" });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setDialogOpen(false);
-    resetForm();
-    refreshSuratMasuk();
   }
 
   /* ================= DELETE ================= */
@@ -178,7 +193,7 @@ export default function SuratMasuk() {
     });
     setDeleteId(null);
     toast({ title: "Dihapus", description: "Surat masuk dihapus" });
-    loadSuratMasuk();
+    refreshSuratMasuk();
   }
 
   return (
@@ -350,8 +365,8 @@ export default function SuratMasuk() {
             >
               Batal
             </Button>
-            <Button className="w-full sm:w-auto" onClick={handleSave}>
-              {editId ? "Simpan" : "Tambah"}
+            <Button className="w-full sm:w-auto" onClick={handleSave} disabled={isSubmitting}>
+              {isSubmitting ? "Menyimpan..." : editId ? "Simpan" : "Tambah"}
             </Button>
           </DialogFooter>
         </DialogContent>
