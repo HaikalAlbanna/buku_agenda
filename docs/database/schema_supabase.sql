@@ -65,27 +65,32 @@ GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, anon, authenticated, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO postgres, anon, authenticated, service_role;
 
--- 8. Aktifkan RLS dan Buat Policy Akses Penuh (Agar Publishable Key bisa SELECT, INSERT, UPDATE, DELETE)
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE buku ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tipe_surat ENABLE ROW LEVEL SECURITY;
-ALTER TABLE masuk ENABLE ROW LEVEL SECURITY;
-ALTER TABLE surat_keluar ENABLE ROW LEVEL SECURITY;
+-- 8. Aktifkan RLS dan Buat Policy Keamanan
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.buku ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tipe_surat ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.masuk ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.surat_keluar ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Public full access users" ON users;
-CREATE POLICY "Public full access users" ON users FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Public full access users" ON public.users;
+DROP POLICY IF EXISTS "Allow access to users" ON public.users;
+CREATE POLICY "Allow access to users" ON public.users FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Public full access buku" ON buku;
-CREATE POLICY "Public full access buku" ON buku FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Public full access buku" ON public.buku;
+DROP POLICY IF EXISTS "Allow access to buku" ON public.buku;
+CREATE POLICY "Allow access to buku" ON public.buku FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Public full access tipe_surat" ON tipe_surat;
-CREATE POLICY "Public full access tipe_surat" ON tipe_surat FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Public full access tipe_surat" ON public.tipe_surat;
+DROP POLICY IF EXISTS "Allow access to tipe_surat" ON public.tipe_surat;
+CREATE POLICY "Allow access to tipe_surat" ON public.tipe_surat FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Public full access masuk" ON masuk;
-CREATE POLICY "Public full access masuk" ON masuk FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Public full access masuk" ON public.masuk;
+DROP POLICY IF EXISTS "Allow access to masuk" ON public.masuk;
+CREATE POLICY "Allow access to masuk" ON public.masuk FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Public full access surat_keluar" ON surat_keluar;
-CREATE POLICY "Public full access surat_keluar" ON surat_keluar FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Public full access surat_keluar" ON public.surat_keluar;
+DROP POLICY IF EXISTS "Allow access to surat_keluar" ON public.surat_keluar;
+CREATE POLICY "Allow access to surat_keluar" ON public.surat_keluar FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 -- 9. Seed Akun Default Admin (Username: admin | Password: admin123)
 INSERT INTO users (username, nama, password, role)
