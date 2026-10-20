@@ -1,22 +1,51 @@
 const express = require("express");
 const router = express.Router();
 const supabase = require("../supabase");
-const localStore = require("../local_store");
 
 // GET semua surat masuk
 router.get("/", async (req, res) => {
+  const { tahun } = req.query;
+  try {
+    let query = supabase
+      .from("masuk")
+      .select("id, nomor_surat, tanggal, surat_dari, perihal, arsip_pdf, created_at")
+      .order("tanggal", { ascending: false })
+      .order("id", { ascending: false });
+
+    if (tahun) {
+      query = query.gte("tanggal", `${tahun}-01-01`).lte("tanggal", `${tahun}-12-31`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("[masuk] Error fetching surat masuk:", error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    return res.json(data || []);
+  } catch (err) {
+    console.error("[masuk] Exception:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// GET detail surat masuk
+router.get("/:id", async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("masuk")
       .select("*")
-      .order("id", { ascending: false });
+      .eq("id", req.params.id)
+      .single();
 
-    if (!error && data) {
-      return res.json(data);
+    if (error || !data) {
+      return res.status(404).json({ error: "Surat masuk tidak ditemukan" });
     }
-    return res.json(localStore.getMasuk());
+
+    return res.json(data);
   } catch (err) {
-    return res.json(localStore.getMasuk());
+    return res.status(404).json({ error: "Surat masuk tidak ditemukan" });
   }
 });
 
@@ -43,21 +72,13 @@ router.post("/", async (req, res) => {
 
     if (error) {
       console.error("[masuk] Supabase insert error:", error);
-      const saved = localStore.addMasuk(payload);
-      return res.json({
-        message: "Surat masuk berhasil ditambahkan (Local Fallback)",
-        data: [saved],
-      });
+      return res.status(500).json({ error: error.message });
     }
 
-    localStore.addMasuk(payload);
     return res.json({ message: "Surat masuk berhasil ditambahkan", data });
   } catch (err) {
-    const saved = localStore.addMasuk(payload);
-    return res.json({
-      message: "Surat masuk berhasil ditambahkan (Local Fallback)",
-      data: [saved],
-    });
+    console.error("[masuk] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -84,19 +105,14 @@ router.put("/:id", async (req, res) => {
       .select();
 
     if (error) {
-      localStore.updateMasuk(id, updateData);
-      return res.json({
-        message: "Surat masuk berhasil diperbarui (Local Fallback)",
-      });
+      console.error("[masuk] Supabase update error:", error);
+      return res.status(500).json({ error: error.message });
     }
 
-    localStore.updateMasuk(id, updateData);
     return res.json({ message: "Surat masuk berhasil diperbarui", data });
   } catch (err) {
-    localStore.updateMasuk(id, updateData);
-    return res.json({
-      message: "Surat masuk berhasil diperbarui (Local Fallback)",
-    });
+    console.error("[masuk] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -105,15 +121,16 @@ router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const { error } = await supabase.from("masuk").delete().eq("id", id);
-    localStore.deleteMasuk(id);
     if (error) {
-      return res.json({ message: "Surat masuk berhasil dihapus" });
+      console.error("[masuk] Supabase delete error:", error);
+      return res.status(500).json({ error: error.message });
     }
     return res.json({ message: "Surat masuk berhasil dihapus" });
   } catch (err) {
-    localStore.deleteMasuk(id);
-    return res.json({ message: "Surat masuk berhasil dihapus" });
+    console.error("[masuk] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
 module.exports = router;
+

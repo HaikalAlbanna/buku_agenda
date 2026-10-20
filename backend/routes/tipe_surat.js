@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const supabase = require("../supabase");
-const localStore = require("../local_store");
 
 // GET tipe surat berdasarkan buku_kode
 router.get("/:buku_kode", async (req, res) => {
@@ -11,17 +10,19 @@ router.get("/:buku_kode", async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("tipe_surat")
-      .select("*")
+      .select("buku_kode, kode, nama")
       .eq("buku_kode", cleanKode)
       .order("kode", { ascending: true });
 
-    if (!error && data && data.length > 0) {
-      return res.json(data);
+    if (error) {
+      console.error("[tipe_surat] Error fetching tipe surat:", error);
+      return res.status(500).json({ error: error.message });
     }
 
-    return res.json(localStore.getTipeSurat(cleanKode));
+    return res.json(data || []);
   } catch (err) {
-    return res.json(localStore.getTipeSurat(cleanKode));
+    console.error("[tipe_surat] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -48,21 +49,13 @@ router.post("/", async (req, res) => {
 
     if (error) {
       console.error("[tipe_surat] Supabase upsert error:", error);
-      const saved = localStore.addTipeSurat(newTipe);
-      return res.json({
-        message: "Tipe surat berhasil ditambahkan (Local Fallback)",
-        data: [saved],
-      });
+      return res.status(500).json({ error: error.message });
     }
 
-    localStore.addTipeSurat(newTipe);
     return res.json({ message: "Tipe surat berhasil ditambahkan", data });
   } catch (err) {
-    const saved = localStore.addTipeSurat(newTipe);
-    return res.json({
-      message: "Tipe surat berhasil ditambahkan (Local Fallback)",
-      data: [saved],
-    });
+    console.error("[tipe_surat] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -82,16 +75,17 @@ router.delete("/:kode", async (req, res) => {
       .eq("buku_kode", buku_kode)
       .eq("kode", kode);
 
-    localStore.deleteTipeSurat(buku_kode, kode);
     if (error) {
-      return res.json({ message: "Tipe surat berhasil dihapus (Local Fallback)" });
+      console.error("[tipe_surat] Supabase delete error:", error);
+      return res.status(500).json({ error: error.message });
     }
 
     return res.json({ message: "Tipe surat berhasil dihapus" });
   } catch (err) {
-    localStore.deleteTipeSurat(buku_kode, kode);
-    return res.json({ message: "Tipe surat berhasil dihapus" });
+    console.error("[tipe_surat] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
 module.exports = router;
+

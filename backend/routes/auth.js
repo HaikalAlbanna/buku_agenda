@@ -22,22 +22,23 @@ router.post("/login", async (req, res) => {
 
     const trimmedUser = username.trim();
 
-    // 1. Cek query Supabase
-    let matchedUser = null;
-    try {
-      const { data: users, error } = await supabase
-        .from("users")
-        .select("id, username, nama, password, role")
-        .eq("username", trimmedUser);
+    // 1. Cek query Supabase ke tabel users
+    const { data: users, error } = await supabase
+      .from("users")
+      .select("id, username, nama, password, role")
+      .eq("username", trimmedUser)
+      .limit(1);
 
-      if (!error && users && users.length > 0) {
-        matchedUser = users[0];
-      }
-    } catch (e) {
-      // Supabase connection or table error - fallback ke akun admin bawaan
+    if (error) {
+      console.error("[auth] Supabase login error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Gagal terhubung ke database: " + error.message,
+      });
     }
 
-    // 2. Jika user ditemukan di Supabase
+    let matchedUser = users && users.length > 0 ? users[0] : null;
+
     if (matchedUser) {
       const isMatch =
         matchedUser.password === password ||
@@ -61,7 +62,7 @@ router.post("/login", async (req, res) => {
       }
     }
 
-    // 3. Fallback akun default admin jika belum ada di database atau database belum siap
+    // Akun admin bawaan jika users di database kosong / belum terjangkau
     if (trimmedUser === "admin" && password === "admin123") {
       const payload = {
         id: 1,
@@ -72,7 +73,7 @@ router.post("/login", async (req, res) => {
       const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
       return res.json({
         success: true,
-        message: "Login berhasil (Akun Admin).",
+        message: "Login berhasil.",
         token,
         user: payload,
       });
@@ -81,6 +82,20 @@ router.post("/login", async (req, res) => {
     return res.status(401).json({
       success: false,
       message: "Username atau password salah.",
+    });
+
+    const payload = {
+      id: matchedUser.id,
+      username: matchedUser.username,
+      nama: matchedUser.nama,
+      role: matchedUser.role,
+    };
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+    return res.json({
+      success: true,
+      message: "Login berhasil.",
+      token,
+      user: payload,
     });
   } catch (error) {
     console.error("Login error:", error);

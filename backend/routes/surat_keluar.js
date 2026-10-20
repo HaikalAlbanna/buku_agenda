@@ -1,22 +1,36 @@
 const express = require("express");
 const router = express.Router();
 const supabase = require("../supabase");
-const localStore = require("../local_store");
 
 // GET semua surat keluar
 router.get("/", async (req, res) => {
+  const { buku, tahun } = req.query;
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from("surat_keluar")
-      .select("*")
-      .order("tanggal", { ascending: false });
+      .select("id, buku_kode, tipe_kode, nomor_urut, nomor_surat, tanggal, alamat_dituju, perihal, pdf_file_name, pdf_data, created_at")
+      .order("tanggal", { ascending: false })
+      .order("created_at", { ascending: false });
 
-    if (!error && data) {
-      return res.json(data);
+    if (buku && buku !== "all") {
+      query = query.eq("buku_kode", buku.trim().toUpperCase());
     }
-    return res.json(localStore.getSuratKeluar());
+
+    if (tahun) {
+      query = query.gte("tanggal", `${tahun}-01-01`).lte("tanggal", `${tahun}-12-31`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("[surat_keluar] Error fetching surat keluar:", error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    return res.json(data || []);
   } catch (err) {
-    return res.json(localStore.getSuratKeluar());
+    console.error("[surat_keluar] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -28,12 +42,15 @@ router.get("/export", async (req, res) => {
       .select("*")
       .order("tanggal", { ascending: false });
 
-    if (!error && data) {
-      return res.json(data);
+    if (error) {
+      console.error("[surat_keluar] Error exporting surat keluar:", error);
+      return res.status(500).json({ error: error.message });
     }
-    return res.json(localStore.getSuratKeluar());
+
+    return res.json(data || []);
   } catch (err) {
-    return res.json(localStore.getSuratKeluar());
+    console.error("[surat_keluar] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -46,16 +63,13 @@ router.get("/:id", async (req, res) => {
       .eq("id", req.params.id)
       .single();
 
-    if (!error && data) {
-      return res.json(data);
+    if (error) {
+      return res.status(404).json({ error: "Surat tidak ditemukan" });
     }
-    const fallback = localStore.getSuratKeluarById(req.params.id);
-    if (fallback) return res.json(fallback);
-    return res.status(404).json({ error: "Surat tidak ditemukan" });
+
+    return res.json(data);
   } catch (err) {
-    const fallback = localStore.getSuratKeluarById(req.params.id);
-    if (fallback) return res.json(fallback);
-    res.status(404).json({ error: "Surat tidak ditemukan" });
+    return res.status(404).json({ error: "Surat tidak ditemukan" });
   }
 });
 
@@ -92,21 +106,13 @@ router.post("/", async (req, res) => {
 
     if (error) {
       console.error("[surat_keluar] Supabase error:", error);
-      const saved = localStore.addSuratKeluar(row);
-      return res.json({
-        message: "Surat keluar berhasil ditambahkan (Local Fallback)",
-        data: [saved],
-      });
+      return res.status(500).json({ error: error.message });
     }
 
-    localStore.addSuratKeluar(row);
     return res.json({ message: "Surat keluar berhasil ditambahkan", data });
   } catch (err) {
-    const saved = localStore.addSuratKeluar(row);
-    return res.json({
-      message: "Surat keluar berhasil ditambahkan (Local Fallback)",
-      data: [saved],
-    });
+    console.error("[surat_keluar] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -146,19 +152,14 @@ router.put("/:id", async (req, res) => {
       .select();
 
     if (error) {
-      localStore.updateSuratKeluar(id, updateData);
-      return res.json({
-        message: "Surat keluar berhasil diperbarui (Local Fallback)",
-      });
+      console.error("[surat_keluar] Supabase update error:", error);
+      return res.status(500).json({ error: error.message });
     }
 
-    localStore.updateSuratKeluar(id, updateData);
     return res.json({ message: "Surat keluar berhasil diperbarui", data });
   } catch (err) {
-    localStore.updateSuratKeluar(id, updateData);
-    return res.json({
-      message: "Surat keluar berhasil diperbarui (Local Fallback)",
-    });
+    console.error("[surat_keluar] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -167,15 +168,16 @@ router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const { error } = await supabase.from("surat_keluar").delete().eq("id", id);
-    localStore.deleteSuratKeluar(id);
     if (error) {
-      return res.json({ message: "Surat keluar berhasil dihapus" });
+      console.error("[surat_keluar] Supabase delete error:", error);
+      return res.status(500).json({ error: error.message });
     }
     return res.json({ message: "Surat keluar berhasil dihapus" });
   } catch (err) {
-    localStore.deleteSuratKeluar(id);
-    return res.json({ message: "Surat keluar berhasil dihapus" });
+    console.error("[surat_keluar] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
 module.exports = router;
+

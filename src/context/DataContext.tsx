@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { API_BASE, authFetch } from "@/lib/api";
-import axios from "axios";
+import { API_BASE, authFetch, getToken } from "@/lib/api";
+import { useAuth } from "./AuthContext";
 
 export interface TipeSurat {
   kode: string;
@@ -49,50 +49,34 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-const CACHE_KEYS = {
-  BUKU: "cache_buku_v1",
-  SURAT_KELUAR: "cache_surat_keluar_v1",
-  SURAT_MASUK: "cache_surat_masuk_v1",
-};
-
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // 1. Initial State dari localStorage (Tampilan Instan 0ms!)
-  const [buku, setBuku] = useState<Buku[]>(() => {
-    try {
-      const stored = localStorage.getItem(CACHE_KEYS.BUKU);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const { isAuthenticated, token } = useAuth();
 
-  const [suratKeluar, setSuratKeluar] = useState<SuratKeluarType[]>(() => {
+  // Bersihkan cache usang lama dari localStorage agar tidak mengganggu data riil dari database
+  useEffect(() => {
     try {
-      const stored = localStorage.getItem(CACHE_KEYS.SURAT_KELUAR);
-      return stored ? JSON.parse(stored) : [];
+      localStorage.removeItem("cache_buku_v1");
+      localStorage.removeItem("cache_surat_keluar_v1");
+      localStorage.removeItem("cache_surat_masuk_v1");
     } catch {
-      return [];
+      // Abaikan jika storage tidak dapat diakses
     }
-  });
+  }, []);
 
-  const [suratMasuk, setSuratMasuk] = useState<SuratMasukType[]>(() => {
-    try {
-      const stored = localStorage.getItem(CACHE_KEYS.SURAT_MASUK);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
-
+  // 1. Initial State murni kosong, menunggu pemuatan dari database
+  const [buku, setBuku] = useState<Buku[]>([]);
+  const [suratKeluar, setSuratKeluar] = useState<SuratKeluarType[]>([]);
+  const [suratMasuk, setSuratMasuk] = useState<SuratMasukType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // 2. Fungsi Refresh Data (Background Revalidation dengan Supabase)
+  // 2. Fungsi Refresh Data murni dari database Supabase
   const refreshBuku = useCallback(async () => {
+    if (!getToken()) return;
     try {
-      const res = await axios.get<Buku[]>(`${API_BASE}/buku?include=tipe`);
-      if (res.data) {
-        setBuku(res.data);
-        localStorage.setItem(CACHE_KEYS.BUKU, JSON.stringify(res.data));
+      const res = await authFetch(`${API_BASE}/buku?include=tipe`);
+      if (res.ok) {
+        const data = await res.json();
+        setBuku(data || []);
       }
     } catch (e) {
       console.error("Gagal refresh buku dari Supabase", e);
@@ -100,12 +84,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const refreshSuratKeluar = useCallback(async () => {
+    if (!getToken()) return;
     try {
       const res = await authFetch(`${API_BASE}/surat_keluar`);
       if (res.ok) {
         const json = await res.json();
         setSuratKeluar(json || []);
-        localStorage.setItem(CACHE_KEYS.SURAT_KELUAR, JSON.stringify(json || []));
       }
     } catch (e) {
       console.error("Gagal refresh surat keluar dari Supabase", e);
@@ -113,6 +97,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const refreshSuratMasuk = useCallback(async () => {
+    if (!getToken()) return;
     try {
       const res = await authFetch(`${API_BASE}/masuk`);
       if (res.ok) {
@@ -127,7 +112,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           pdfData: item.arsip_pdf || null,
         }));
         setSuratMasuk(formatted);
-        localStorage.setItem(CACHE_KEYS.SURAT_MASUK, JSON.stringify(formatted));
       }
     } catch (e) {
       console.error("Gagal refresh surat masuk dari Supabase", e);
@@ -135,14 +119,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const refreshAll = useCallback(async () => {
+    if (!getToken()) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     await Promise.allSettled([refreshBuku(), refreshSuratKeluar(), refreshSuratMasuk()]);
     setLoading(false);
   }, [refreshBuku, refreshSuratKeluar, refreshSuratMasuk]);
 
-  // 3. Pre-fetch otomatis saat Provider di-mount
+  // 3. Pre-fetch otomatis saat Provider di-mount jika token tersedia
   useEffect(() => {
-    refreshAll();
-  }, [refreshAll]);
+    if (isAuthenticated || token || getToken()) {
+      refreshAll();
+    } else {
+      setLoading(false);
+    }
+  }, [isAuthenticated, token, refreshAll]);
 
   return (
     <DataContext.Provider

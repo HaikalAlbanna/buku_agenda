@@ -1,14 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const supabase = require("../supabase");
-const localStore = require("../local_store");
 
-// GET semua buku (bisa dengan ?include=tipe untuk 1 kali query paralel super cepat)
+// GET semua buku (dengan ?include=tipe untuk gabungan relasi yang cepat & efisien)
 router.get("/", async (req, res) => {
   const { include } = req.query;
 
   try {
     if (include === "tipe") {
+      // Query paralel buku dan tipe_surat
       const [resBuku, resTipe] = await Promise.all([
         supabase
           .from("buku")
@@ -20,15 +20,13 @@ router.get("/", async (req, res) => {
           .order("kode", { ascending: true }),
       ]);
 
-      const bukuList =
-        !resBuku.error && resBuku.data && resBuku.data.length > 0
-          ? resBuku.data
-          : localStore.getBuku();
+      if (resBuku.error) {
+        console.error("[buku] Error fetching buku:", resBuku.error);
+        return res.status(500).json({ error: resBuku.error.message });
+      }
 
-      const tipeList =
-        !resTipe.error && resTipe.data && resTipe.data.length > 0
-          ? resTipe.data
-          : localStore.getTipeSurat();
+      const bukuList = resBuku.data || [];
+      const tipeList = !resTipe.error && resTipe.data ? resTipe.data : [];
 
       const map = {};
       for (const t of tipeList) {
@@ -49,19 +47,21 @@ router.get("/", async (req, res) => {
       return res.json(result);
     }
 
-    // Default: GET /api/buku
+    // Default: GET /api/buku (hanya kolom yang diperlukan)
     const { data, error } = await supabase
       .from("buku")
-      .select("*")
+      .select("kode, nama")
       .order("kode", { ascending: true });
 
-    if (!error && data && data.length > 0) {
-      return res.json(data);
+    if (error) {
+      console.error("[buku] Error fetching buku:", error);
+      return res.status(500).json({ error: error.message });
     }
 
-    return res.json(localStore.getBuku());
+    return res.json(data || []);
   } catch (err) {
-    return res.json(localStore.getBuku());
+    console.error("[buku] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -85,21 +85,13 @@ router.post("/", async (req, res) => {
 
     if (error) {
       console.error("[buku] Supabase upsert error:", error);
-      const saved = localStore.addBuku(newBuku);
-      return res.json({
-        message: "Buku berhasil ditambahkan (Local Fallback)",
-        data: [saved],
-      });
+      return res.status(500).json({ error: error.message });
     }
 
-    localStore.addBuku(newBuku);
     return res.json({ message: "Buku berhasil ditambahkan", data });
   } catch (err) {
-    const saved = localStore.addBuku(newBuku);
-    return res.json({
-      message: "Buku berhasil ditambahkan (Local Fallback)",
-      data: [saved],
-    });
+    console.error("[buku] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -108,19 +100,21 @@ router.delete("/:kode", async (req, res) => {
   const { kode } = req.params;
 
   try {
+    // Hapus tipe surat terkait di Supabase
     await supabase.from("tipe_surat").delete().eq("buku_kode", kode);
     const { error } = await supabase.from("buku").delete().eq("kode", kode);
 
-    localStore.deleteBuku(kode);
     if (error) {
-      return res.json({ message: "Buku berhasil dihapus (Local Fallback)" });
+      console.error("[buku] Supabase delete error:", error);
+      return res.status(500).json({ error: error.message });
     }
 
     return res.json({ message: "Buku berhasil dihapus" });
   } catch (err) {
-    localStore.deleteBuku(kode);
-    return res.json({ message: "Buku berhasil dihapus" });
+    console.error("[buku] Exception:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
 module.exports = router;
+
