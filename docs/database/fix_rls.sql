@@ -15,60 +15,61 @@ ALTER TABLE IF EXISTS public.masuk ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.surat_keluar ENABLE ROW LEVEL SECURITY;
 
 -- 2. Bersihkan Kebijakan (Policy) Lama Jika Ada
-DROP POLICY IF EXISTS "Public full access users" ON public.users;
-DROP POLICY IF EXISTS "Allow anon read write users" ON public.users;
-DROP POLICY IF EXISTS "Public full access buku" ON public.buku;
-DROP POLICY IF EXISTS "Allow anon read write buku" ON public.buku;
-DROP POLICY IF EXISTS "Public full access tipe_surat" ON public.tipe_surat;
-DROP POLICY IF EXISTS "Allow anon read write tipe_surat" ON public.tipe_surat;
-DROP POLICY IF EXISTS "Public full access masuk" ON public.masuk;
-DROP POLICY IF EXISTS "Allow anon read write masuk" ON public.masuk;
-DROP POLICY IF EXISTS "Public full access surat_keluar" ON public.surat_keluar;
-DROP POLICY IF EXISTS "Allow anon read write surat_keluar" ON public.surat_keluar;
+DO $$ 
+DECLARE 
+    r RECORD;
+BEGIN
+    FOR r IN (
+        SELECT policyname, tablename 
+        FROM pg_policies 
+        WHERE schemaname = 'public' 
+          AND tablename IN ('users', 'buku', 'tipe_surat', 'masuk', 'surat_keluar')
+    ) LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r.policyname, r.tablename);
+    END LOOP;
+END $$;
 
--- 3. Buat Kebijakan Keamanan (RLS Policies)
+DROP POLICY IF EXISTS "Allow public read buku" ON public.buku;
+DROP POLICY IF EXISTS "Allow public read tipe_surat" ON public.tipe_surat;
+DROP POLICY IF EXISTS "Allow public read masuk" ON public.masuk;
+DROP POLICY IF EXISTS "Allow public read surat_keluar" ON public.surat_keluar;
 
--- Policy untuk tabel 'users'
-CREATE POLICY "Allow access to users" 
-ON public.users 
-FOR ALL 
-TO anon, authenticated, service_role 
-USING (true) 
-WITH CHECK (true);
+-- 3. Buat Kebijakan Keamanan (RLS Policies) sesuai rekomendasi Supabase Linter
+-- Hanya izinkan SELECT publik agar tidak memicu warning "RLS Policy Always True".
+-- Backend Express menggunakan 'service_role' key yang otomatis bypass RLS untuk INSERT/UPDATE/DELETE.
 
--- Policy untuk tabel 'buku'
-CREATE POLICY "Allow access to buku" 
+CREATE POLICY "Allow public read buku" 
 ON public.buku 
-FOR ALL 
-TO anon, authenticated, service_role 
-USING (true) 
-WITH CHECK (true);
+FOR SELECT 
+TO anon, authenticated 
+USING (true);
 
--- Policy untuk tabel 'tipe_surat'
-CREATE POLICY "Allow access to tipe_surat" 
+CREATE POLICY "Allow public read tipe_surat" 
 ON public.tipe_surat 
-FOR ALL 
-TO anon, authenticated, service_role 
-USING (true) 
-WITH CHECK (true);
+FOR SELECT 
+TO anon, authenticated 
+USING (true);
 
--- Policy untuk tabel 'masuk'
-CREATE POLICY "Allow access to masuk" 
+CREATE POLICY "Allow public read masuk" 
 ON public.masuk 
-FOR ALL 
-TO anon, authenticated, service_role 
-USING (true) 
-WITH CHECK (true);
+FOR SELECT 
+TO anon, authenticated 
+USING (true);
 
--- Policy untuk tabel 'surat_keluar'
-CREATE POLICY "Allow access to surat_keluar" 
+CREATE POLICY "Allow public read surat_keluar" 
 ON public.surat_keluar 
-FOR ALL 
-TO anon, authenticated, service_role 
-USING (true) 
-WITH CHECK (true);
+FOR SELECT 
+TO anon, authenticated 
+USING (true);
+
+CREATE POLICY "Allow public read users" 
+ON public.users 
+FOR SELECT 
+TO anon, authenticated 
+USING (true);
 
 -- 4. Berikan Hak Akses (Grants) ke Role Supabase
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
-GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
