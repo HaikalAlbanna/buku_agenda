@@ -62,11 +62,10 @@ CREATE INDEX IF NOT EXISTS idx_masuk_tanggal ON masuk (tanggal DESC);
 
 -- 7. Berikan Hak Akses ke Schema Public
 GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO anon, authenticated;
-GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, anon, authenticated, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO postgres, anon, authenticated, service_role;
 
--- 8. Aktifkan RLS dan Buat Policy Keamanan (Sesuai Rekomendasi Supabase Linter)
+-- 8. Aktifkan RLS dan Buat Policy Keamanan Lengkap
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.buku ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tipe_surat ENABLE ROW LEVEL SECURITY;
@@ -76,23 +75,32 @@ ALTER TABLE public.surat_keluar ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public full access users" ON public.users;
 DROP POLICY IF EXISTS "Allow access to users" ON public.users;
 DROP POLICY IF EXISTS "Allow public read users" ON public.users;
-CREATE POLICY "Allow public read users" ON public.users FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "Allow full access users" ON public.users;
+CREATE POLICY "Allow full access users" ON public.users FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Public full access buku" ON public.buku;
 DROP POLICY IF EXISTS "Allow access to buku" ON public.buku;
-CREATE POLICY "Allow public read buku" ON public.buku FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "Allow public read buku" ON public.buku;
+DROP POLICY IF EXISTS "Allow full access buku" ON public.buku;
+CREATE POLICY "Allow full access buku" ON public.buku FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Public full access tipe_surat" ON public.tipe_surat;
 DROP POLICY IF EXISTS "Allow access to tipe_surat" ON public.tipe_surat;
-CREATE POLICY "Allow public read tipe_surat" ON public.tipe_surat FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "Allow public read tipe_surat" ON public.tipe_surat;
+DROP POLICY IF EXISTS "Allow full access tipe_surat" ON public.tipe_surat;
+CREATE POLICY "Allow full access tipe_surat" ON public.tipe_surat FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Public full access masuk" ON public.masuk;
 DROP POLICY IF EXISTS "Allow access to masuk" ON public.masuk;
-CREATE POLICY "Allow public read masuk" ON public.masuk FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "Allow public read masuk" ON public.masuk;
+DROP POLICY IF EXISTS "Allow full access masuk" ON public.masuk;
+CREATE POLICY "Allow full access masuk" ON public.masuk FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Public full access surat_keluar" ON public.surat_keluar;
 DROP POLICY IF EXISTS "Allow access to surat_keluar" ON public.surat_keluar;
-CREATE POLICY "Allow public read surat_keluar" ON public.surat_keluar FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "Allow public read surat_keluar" ON public.surat_keluar;
+DROP POLICY IF EXISTS "Allow full access surat_keluar" ON public.surat_keluar;
+CREATE POLICY "Allow full access surat_keluar" ON public.surat_keluar FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 -- 9. Seed Akun Default Admin (Username: admin | Password: admin123)
 INSERT INTO users (username, nama, password, role)
@@ -113,8 +121,8 @@ INSERT INTO buku (kode, nama) VALUES
 ON CONFLICT (kode) DO UPDATE 
 SET nama = EXCLUDED.nama;
 
--- 11. Kosongkan Tabel Tipe Surat (Dikelola mandiri oleh pengguna)
-DELETE FROM tipe_surat;
+-- 11. Kosongkan Tabel Tipe Surat (Dikelola mandiri oleh pengguna jika diperlukan)
+-- DELETE FROM tipe_surat;
 
 -- 12. Tampilkan Hasil Data Buku
 SELECT * FROM buku ORDER BY kode ASC;

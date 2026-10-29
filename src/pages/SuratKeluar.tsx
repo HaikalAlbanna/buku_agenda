@@ -268,11 +268,11 @@ export default function SuratKeluar() {
 
       setDialogOpen(false);
       resetForm();
-      refreshSuratKeluar();
+      await refreshSuratKeluar();
     } catch (err: any) {
       toast({
-        title: "Error",
-        description: err.message || "Gagal menyimpan data",
+        title: "Gagal Menyimpan Surat Keluar",
+        description: err.message || "Gagal menyimpan data ke database",
         variant: "destructive",
       });
     } finally {
@@ -284,12 +284,20 @@ export default function SuratKeluar() {
 
   async function handleDelete() {
     if (!deleteId) return;
-    await authFetch(`${API_BASE}/surat_keluar/${deleteId}`, {
-      method: "DELETE",
-    });
-    setDeleteId(null);
-    toast({ title: "Dihapus", description: "Surat keluar dihapus" });
-    refreshSuratKeluar();
+    try {
+      await authFetch(`${API_BASE}/surat_keluar/${deleteId}`, {
+        method: "DELETE",
+      });
+      setDeleteId(null);
+      toast({ title: "Dihapus", description: "Surat keluar dihapus" });
+      await refreshSuratKeluar();
+    } catch (err: any) {
+      toast({
+        title: "Gagal Menghapus",
+        description: err.message || "Gagal menghapus data",
+        variant: "destructive",
+      });
+    }
   }
 
   return (

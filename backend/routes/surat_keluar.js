@@ -88,15 +88,21 @@ router.post("/", async (req, res) => {
     pdfData,
   } = req.body;
 
+  if (!bukuKode || !tipeKode || !nomorUrut || !nomorSurat || !tanggal || !perihal) {
+    return res.status(400).json({
+      error: "Data surat keluar belum lengkap. Pastikan Buku, Kode Tipe, Nomor Urut, Tanggal, dan Perihal telah diisi.",
+    });
+  }
+
   const row = {
     id: id || "SK-" + Date.now(),
-    buku_kode: bukuKode,
-    tipe_kode: tipeKode,
-    nomor_urut: nomorUrut,
-    nomor_surat: nomorSurat,
-    tanggal,
-    alamat_dituju: alamatDituju || null,
-    perihal,
+    buku_kode: String(bukuKode).trim().toUpperCase(),
+    tipe_kode: String(tipeKode).trim(),
+    nomor_urut: String(nomorUrut).trim(),
+    nomor_surat: String(nomorSurat).trim(),
+    tanggal: String(tanggal).trim(),
+    alamat_dituju: alamatDituju ? String(alamatDituju).trim() : null,
+    perihal: String(perihal).trim(),
     pdf_file_name: pdfFileName || null,
     pdf_data: pdfData || null,
   };
@@ -106,7 +112,13 @@ router.post("/", async (req, res) => {
 
     if (error) {
       console.error("[surat_keluar] Supabase error:", error);
-      return res.status(500).json({ error: error.message });
+      let userFriendlyMessage = error.message;
+      if (error.code === "42501") {
+        userFriendlyMessage = "Izin database ditolak (Supabase RLS Policy). Harap jalankan file docs/database/fix_rls.sql di Supabase SQL Editor atau pasang SUPABASE_SERVICE_ROLE_KEY di Environment Variables Vercel.";
+      } else if (error.code === "23503") {
+        userFriendlyMessage = `Relasi Buku/Tipe tidak ditemukan: Buku '${bukuKode}' atau Tipe '${tipeKode}' belum terdaftar di database.`;
+      }
+      return res.status(500).json({ error: userFriendlyMessage, code: error.code });
     }
 
     return res.json({ message: "Surat keluar berhasil ditambahkan", data });
@@ -131,16 +143,14 @@ router.put("/:id", async (req, res) => {
     pdfData,
   } = req.body;
 
-  const updateData = {
-    buku_kode: bukuKode,
-    tipe_kode: tipeKode,
-    nomor_urut: nomorUrut,
-    nomor_surat: nomorSurat,
-    tanggal,
-    alamat_dituju: alamatDituju || null,
-    perihal,
-  };
-
+  const updateData = {};
+  if (bukuKode) updateData.buku_kode = String(bukuKode).trim().toUpperCase();
+  if (tipeKode) updateData.tipe_kode = String(tipeKode).trim();
+  if (nomorUrut) updateData.nomor_urut = String(nomorUrut).trim();
+  if (nomorSurat) updateData.nomor_surat = String(nomorSurat).trim();
+  if (tanggal) updateData.tanggal = String(tanggal).trim();
+  if (alamatDituju !== undefined) updateData.alamat_dituju = alamatDituju ? String(alamatDituju).trim() : null;
+  if (perihal) updateData.perihal = String(perihal).trim();
   if (pdfFileName !== undefined) updateData.pdf_file_name = pdfFileName;
   if (pdfData !== undefined) updateData.pdf_data = pdfData;
 
@@ -153,7 +163,11 @@ router.put("/:id", async (req, res) => {
 
     if (error) {
       console.error("[surat_keluar] Supabase update error:", error);
-      return res.status(500).json({ error: error.message });
+      let userFriendlyMessage = error.message;
+      if (error.code === "42501") {
+        userFriendlyMessage = "Izin database ditolak (Supabase RLS Policy). Harap jalankan file docs/database/fix_rls.sql di Supabase SQL Editor.";
+      }
+      return res.status(500).json({ error: userFriendlyMessage, code: error.code });
     }
 
     return res.json({ message: "Surat keluar berhasil diperbarui", data });
@@ -170,7 +184,11 @@ router.delete("/:id", async (req, res) => {
     const { error } = await supabase.from("surat_keluar").delete().eq("id", id);
     if (error) {
       console.error("[surat_keluar] Supabase delete error:", error);
-      return res.status(500).json({ error: error.message });
+      let userFriendlyMessage = error.message;
+      if (error.code === "42501") {
+        userFriendlyMessage = "Izin database ditolak (Supabase RLS Policy). Harap jalankan file docs/database/fix_rls.sql di Supabase SQL Editor.";
+      }
+      return res.status(500).json({ error: userFriendlyMessage, code: error.code });
     }
     return res.json({ message: "Surat keluar berhasil dihapus" });
   } catch (err) {

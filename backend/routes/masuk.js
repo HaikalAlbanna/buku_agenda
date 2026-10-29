@@ -72,7 +72,11 @@ router.post("/", async (req, res) => {
 
     if (error) {
       console.error("[masuk] Supabase insert error:", error);
-      return res.status(500).json({ error: error.message });
+      let userFriendlyMessage = error.message;
+      if (error.code === "42501") {
+        userFriendlyMessage = "Izin database ditolak (Supabase RLS Policy). Harap jalankan file docs/database/fix_rls.sql di Supabase SQL Editor atau pasang SUPABASE_SERVICE_ROLE_KEY di Environment Variables Vercel.";
+      }
+      return res.status(500).json({ error: userFriendlyMessage, code: error.code });
     }
 
     return res.json({ message: "Surat masuk berhasil ditambahkan", data });
@@ -106,7 +110,11 @@ router.put("/:id", async (req, res) => {
 
     if (error) {
       console.error("[masuk] Supabase update error:", error);
-      return res.status(500).json({ error: error.message });
+      let userFriendlyMessage = error.message;
+      if (error.code === "42501") {
+        userFriendlyMessage = "Izin database ditolak (Supabase RLS Policy). Harap jalankan file docs/database/fix_rls.sql di Supabase SQL Editor.";
+      }
+      return res.status(500).json({ error: userFriendlyMessage, code: error.code });
     }
 
     return res.json({ message: "Surat masuk berhasil diperbarui", data });
@@ -123,7 +131,11 @@ router.delete("/:id", async (req, res) => {
     const { error } = await supabase.from("masuk").delete().eq("id", id);
     if (error) {
       console.error("[masuk] Supabase delete error:", error);
-      return res.status(500).json({ error: error.message });
+      let userFriendlyMessage = error.message;
+      if (error.code === "42501") {
+        userFriendlyMessage = "Izin database ditolak (Supabase RLS Policy). Harap jalankan file docs/database/fix_rls.sql di Supabase SQL Editor.";
+      }
+      return res.status(500).json({ error: userFriendlyMessage, code: error.code });
     }
     return res.json({ message: "Surat masuk berhasil dihapus" });
   } catch (err) {

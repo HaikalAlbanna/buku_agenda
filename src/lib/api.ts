@@ -56,6 +56,30 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
     }
   }
 
+  if (!response.ok) {
+    let errorMessage = `Permintaan gagal (${response.status})`;
+    try {
+      const cloned = response.clone();
+      const errJson = await cloned.json();
+      if (errJson && (errJson.error || errJson.message)) {
+        errorMessage = errJson.error || errJson.message;
+      }
+    } catch {
+      try {
+        const text = await response.clone().text();
+        if (text && text.length < 200) {
+          errorMessage = text;
+        }
+      } catch {
+        // abaikan
+      }
+    }
+    const error: any = new Error(errorMessage);
+    error.status = response.status;
+    error.response = response;
+    throw error;
+  }
+
   return response;
 }
 

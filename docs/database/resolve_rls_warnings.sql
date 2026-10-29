@@ -3,14 +3,13 @@
 -- Menghilangkan 5 Warning "RLS Policy Always True"
 -- ========================================================
 -- 
--- Penjelasan:
--- Supabase Security Advisor memunculkan warning karena sebelumnya terdapat policy
--- "FOR ALL ... USING (true) WITH CHECK (true)" yang mengizinkan operasi
--- INSERT, UPDATE, dan DELETE bebas tanpa filter ke publik (anon).
+-- ⚠️ PERINGATAN PENTING:
+-- Skrip ini HANYA boleh dijalankan jika backend Anda telah menggunakan
+-- 'SUPABASE_SERVICE_ROLE_KEY' (kunci secret service_role dari Supabase Dashboard > Project Settings > API).
 --
--- Karena aplikasi Buku Agenda menggunakan Backend Express (Node.js/Vercel)
--- yang telah mengamankan rute API dengan JWT Token & hashing password,
--- akses database dari backend paling aman menggunakan 'service_role' key.
+-- JIKA backend Anda masih menggunakan Publishable Key (sb_publishable_...),
+-- JALANKAN FILE: docs/database/fix_rls.sql
+-- (Jika menjalankan skrip ini tanpa service_role key, backend akan ditolak melakukan INSERT/UPDATE/DELETE).
 --
 -- Jalankan skrip ini di:
 -- Supabase Dashboard > SQL Editor > New query > Run (Ctrl + Enter)
@@ -43,6 +42,10 @@ DROP POLICY IF EXISTS "Allow public read buku" ON public.buku;
 DROP POLICY IF EXISTS "Allow public read tipe_surat" ON public.tipe_surat;
 DROP POLICY IF EXISTS "Allow public read masuk" ON public.masuk;
 DROP POLICY IF EXISTS "Allow public read surat_keluar" ON public.surat_keluar;
+DROP POLICY IF EXISTS "Allow full access buku" ON public.buku;
+DROP POLICY IF EXISTS "Allow full access tipe_surat" ON public.tipe_surat;
+DROP POLICY IF EXISTS "Allow full access masuk" ON public.masuk;
+DROP POLICY IF EXISTS "Allow full access surat_keluar" ON public.surat_keluar;
 
 -- 3. Buat policy yang SESUAI standar keamanan Supabase Linter:
 -- Supabase Linter mengizinkan 'USING (true)' KHUSUS untuk operasi SELECT (read-only publik).
