@@ -72,18 +72,35 @@ router.delete("/:kode", async (req, res) => {
     return res.status(400).json({ error: "Query buku_kode wajib diisi" });
   }
 
+  const cleanBukuKode = String(buku_kode).trim().toUpperCase();
+  const cleanKode = String(kode).trim();
+
   try {
+    // 1. Hapus surat keluar terkait kode tipe ini terlebih dahulu agar tidak melanggar foreign key
+    const { error: skErr } = await supabase
+      .from("surat_keluar")
+      .delete()
+      .eq("buku_kode", cleanBukuKode)
+      .eq("tipe_kode", cleanKode);
+
+    if (skErr) {
+      console.warn("[tipe_surat] Catatan hapus surat_keluar terkait:", skErr.message);
+    }
+
+    // 2. Hapus tipe surat
     const { error } = await supabase
       .from("tipe_surat")
       .delete()
-      .eq("buku_kode", buku_kode)
-      .eq("kode", kode);
+      .eq("buku_kode", cleanBukuKode)
+      .eq("kode", cleanKode);
 
     if (error) {
       console.error("[tipe_surat] Supabase delete error:", error);
       let userFriendlyMessage = error.message;
       if (error.code === "42501") {
         userFriendlyMessage = "Izin database ditolak (Supabase RLS Policy). Harap jalankan file docs/database/fix_rls.sql di Supabase SQL Editor.";
+      } else if (error.code === "23503") {
+        userFriendlyMessage = `Tipe surat '${cleanKode}' tidak dapat dihapus karena masih digunakan oleh surat keluar.`;
       }
       return res.status(500).json({ error: userFriendlyMessage, code: error.code });
     }

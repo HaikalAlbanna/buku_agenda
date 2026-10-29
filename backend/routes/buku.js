@@ -102,22 +102,47 @@ router.post("/", async (req, res) => {
 // DELETE buku
 router.delete("/:kode", async (req, res) => {
   const { kode } = req.params;
+  const cleanKode = String(kode).trim().toUpperCase();
 
   try {
-    // Hapus tipe surat terkait di Supabase
-    await supabase.from("tipe_surat").delete().eq("buku_kode", kode);
-    const { error } = await supabase.from("buku").delete().eq("kode", kode);
+    // 1. Hapus surat keluar terkait buku ini terlebih dahulu agar tidak memicu pelanggaran foreign key
+    const { error: skErr } = await supabase
+      .from("surat_keluar")
+      .delete()
+      .eq("buku_kode", cleanKode);
+
+    if (skErr) {
+      console.warn("[buku] Catatan hapus surat_keluar terkait:", skErr.message);
+    }
+
+    // 2. Hapus tipe surat terkait di Supabase
+    const { error: tipeErr } = await supabase
+      .from("tipe_surat")
+      .delete()
+      .eq("buku_kode", cleanKode);
+
+    if (tipeErr) {
+      console.warn("[buku] Catatan hapus tipe_surat terkait:", tipeErr.message);
+    }
+
+    // 3. Hapus master buku
+    const { error } = await supabase
+      .from("buku")
+      .delete()
+      .eq("kode", cleanKode);
 
     if (error) {
       console.error("[buku] Supabase delete error:", error);
       let userFriendlyMessage = error.message;
       if (error.code === "42501") {
         userFriendlyMessage = "Izin database ditolak (Supabase RLS Policy). Harap jalankan file docs/database/fix_rls.sql di Supabase SQL Editor.";
+      } else if (error.code === "23503") {
+        userFriendlyMessage = `Buku '${cleanKode}' tidak dapat dihapus karena masih ada relasi data yang terkunci.`;
       }
       return res.status(500).json({ error: userFriendlyMessage, code: error.code });
     }
 
-    return res.json({ message: "Buku berhasil dihapus" });
+    return res.json({ message: "Buku dan seluruh data terkait berhasil dihapus" });
   } catch (err) {
     console.error("[buku] Exception:", err);
     return res.status(500).json({ error: err.message });

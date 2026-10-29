@@ -45,7 +45,7 @@ type TipeSurat = { kode: string; nama: string };
 type Buku = { kode: string; nama: string; tipeSurat: TipeSurat[] };
 
 export default function KelolaBuku() {
-  const { buku, refreshBuku } = useData();
+  const { buku, refreshBuku, refreshSuratKeluar } = useData();
   const [addBukuOpen, setAddBukuOpen] = useState(false);
   const [addTipeOpen, setAddTipeOpen] = useState<string | null>(null);
   const [deleteBukuKode, setDeleteBukuKode] = useState<string | null>(null);
@@ -117,6 +117,7 @@ export default function KelolaBuku() {
       toast({ title: "Dihapus", description: "Buku telah dihapus" });
       setDeleteBukuKode(null);
       refreshBuku();
+      refreshSuratKeluar();
     } catch (err: any) {
       toast({
         title: "Error",
@@ -176,6 +177,7 @@ export default function KelolaBuku() {
       toast({ title: "Dihapus", description: "Kode tipe telah dihapus" });
       setDeleteTipeInfo(null);
       refreshBuku();
+      refreshSuratKeluar();
     } catch (err: any) {
       toast({
         title: "Error",
