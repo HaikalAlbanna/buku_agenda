@@ -33,6 +33,8 @@ app.get("/api/status", async (req, res) => {
   const supabase = require("./supabase");
   let supabaseOk = false;
   let tablesOk = false;
+  let rlsWriteOk = false;
+  let rlsMessage = "";
   let details = {};
 
   try {
@@ -51,11 +53,39 @@ app.get("/api/status", async (req, res) => {
     details.error = e.message;
   }
 
+  if (supabaseOk) {
+    try {
+      const testRow = {
+        id: "RLS-CHECK-" + Date.now(),
+        buku_kode: "PR",
+        tipe_kode: "01.01",
+        nomor_urut: "0000",
+        nomor_surat: "CHECK",
+        tanggal: "2026-01-01",
+        perihal: "Check",
+      };
+      const { error: insErr } = await supabase.from("surat_keluar").insert([testRow]);
+      if (!insErr) {
+        rlsWriteOk = true;
+        rlsMessage = "OK (Akses tulis diizinkan)";
+        await supabase.from("surat_keluar").delete().eq("id", testRow.id);
+      } else {
+        rlsWriteOk = false;
+        rlsMessage = insErr.message;
+      }
+    } catch (e) {
+      rlsWriteOk = false;
+      rlsMessage = e.message;
+    }
+  }
+
   res.json({
     status: "ok",
     backend: "running",
     supabase_connected: supabaseOk,
     supabase_tables_ready: tablesOk,
+    rls_write_ready: rlsWriteOk,
+    rls_status_detail: rlsMessage,
     details,
   });
 });
